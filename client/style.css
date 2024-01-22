@@ -13,18 +13,26 @@ body {
     background-color: #2f3136;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    width: 100%;
 }
 
-@media screen and (min-width: 768px) {
+/* Media query for viewport width greater than or equal to 1024px */
+@media screen and (min-width: 1024px) {
+    #app-view {
+        width: 80%;
+    }
+}
+
+/* Media query for viewport width between 768px and 1023px */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
     #app-view {
         width: 90%;
     }
 }
 
-@media screen and (min-width: 1024px) {
+/* Media query for viewport width less than 768px */
+@media screen and (max-width: 767px) {
     #app-view {
-        width: 80%;
+        width: 100%;
     }
 }
 
@@ -50,7 +58,8 @@ body {
     color: #fff;
     font-weight: bold;
     border-radius: 10px;
-    transition: background-color 0.3s ease, color 0.3s ease; /* add transition effect for both background and text color */
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* add transition effect for both background and text color */
 }
 
 .menu-item a:hover {
@@ -128,7 +137,8 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease; /* add transition effect */
+    transition: background-color 0.3s ease;
+    /* add transition effect */
 }
 
 button:hover {
@@ -147,7 +157,8 @@ button:hover {
     margin-bottom: 10px;
     border-radius: 5px;
     clear: both;
-    float: left; /* messages for other users stick to the left */
+    float: left;
+    /* messages for other users stick to the left */
 }
 
 .my-message {
