@@ -180,6 +180,7 @@ function main () {
     let lobbyView = new LobbyView();
     let chatView = new ChatView();
     let profileView = new ProfileView();
+    let lobby = new Lobby();
     
     function renderRoute(){
 
@@ -215,13 +216,13 @@ function main () {
     renderRoute();
     window.addEventListener("popstate", renderRoute);
 
-    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby, refreshLobby, socket });
+    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby });
 
 }
 
 // "main" not added as a listener on window "load" event
-let start = window.addEventListener("load", main);
-// window.addEventListener("load", main);
+// let start = window.addEventListener("load", main);
+window.addEventListener("load", main);
 
 
 
