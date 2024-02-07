@@ -18,14 +18,46 @@ var messageBox = createDOM(
     </div>`
     );
 
+// -- assignment3 task1
+var Service = {
+    origin: window.location.origin,
+    getAllRooms: function(){
+        const myPromise = new Promise((resolve, reject) => {
+            const xhttp = new XMLHttpRequest();
+            
+            xhttp.open("GET", Service.origin + "/chat");
+            xhttp.send();
+
+            xhttp.onreadystatechange = function(){
+                if(xhttp.readyState === 4){
+                    if(xhttp.status === 200){
+                        resolve(JSON.parse(xhttp.response));
+                    }
+                }else{
+                    reject(new Error(xhttp.response));
+                }
+            };
+
+            xhttp.onerror = function(err) {
+                reject(new Error(err));
+            }
+
+        });
+
+        return myPromise;
+        
+
+    }
+
+}
 
 class Lobby{
     constructor(){
         this.rooms = {};
 
-        this.addRoom("room-1", "room1");
-        this.addRoom("room-2", "room2");
-        this.addRoom("room-3", "room3");
+        // this.addRoom("room-1", "room1");
+        // this.addRoom("room-2", "room2");
+        // this.addRoom("room-3", "room3");
     }
 
     getRoom(roomId){
@@ -121,7 +153,7 @@ class ChatView{
                 </div>
             </div>`); 
 
-            // e.g. const parentElement = document.querySelector("#parent");
+
         this.titleElem = this.elem.querySelector("h4");
         this.chatElem = this.elem.querySelector("div.message-list");
         this.inputElem = this.elem.querySelector("textarea");
@@ -273,12 +305,19 @@ function main () {
     window.addEventListener("popstate", renderRoute);
     renderRoute();
 
-    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby });
+    // -- assignment3 task1
+    function refreshLobby(){
+
+    }
+    refreshLobby();
+    setInterval(refreshLobby, 6000);
+
+
+    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby ,refreshLobby});
 
 }
 
-// "main" not added as a listener on window "load" event
-// let start = window.addEventListener("load", main);
+
 window.addEventListener("load", main);
 
 var profile = {
