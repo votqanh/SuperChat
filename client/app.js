@@ -18,33 +18,62 @@ var messageBox = createDOM(
     </div>`
     );
 
-// -- assignment3 task1
 var Service = {
     origin: window.location.origin,
     getAllRooms: function() {
         const myPromise = new Promise((resolve, reject) => {
-            const xhttp = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             
-            xhttp.open("GET", Service.origin + "/chat");
-            xhttp.send();
+            xhr.open("GET", Service.origin + "/chat");
+            xhr.send();
 
-            xhttp.onreadystatechange = function(){
-                if (xhttp.readyState === 4) {
-                    if(xhttp.status === 200) {
-                        resolve(JSON.parse(xhttp.response));
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if(xhr.status === 200) {
+                        resolve(JSON.parse(xhr.response));
                     } else {
-                        reject(new Error(xhttp.response));
+                        reject(new Error(xhr.response));
                     }
-                } 
+                }  else {
+                    // Handle other readyStates if needed
+                }
             };
 
-            xhttp.onerror = function(err) {
+            xhr.onerror = function(err) {
                 reject(new Error(err));
             }
 
         });
 
         return myPromise;
+    },
+
+    addRoom: function(data) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+                
+            xhr.open("POST", Service.origin + "/chat");
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const newRoom = JSON.parse(xhr.response);
+                        console.log("HIIII");
+                        console.log(newRoom);
+                        resolve(newRoom);
+                    } else {
+                        reject(new Error(xhr.response));
+                    }
+                }
+            };
+
+            xhr.onerror = function (err) {
+                reject(new Error(err));
+            };
+
+            xhr.send(JSON.stringify(data));
+        });
     }
 }
 
@@ -97,7 +126,17 @@ class LobbyView {
         this.buttonElem.addEventListener('click', () => {
             const roomName = this.inputElem.value;
 
-            this.lobby.addRoom(roomName, roomName);
+            Service.addRoom({name: roomName, image: ''})
+                .then((newRoom) => {
+                    console.log("HOOOO");
+                    console.log(newRoom);
+                    this.lobby.addRoom(newRoom.id, newRoom.name, newRoom.image, []);
+                })
+
+                // for debugging
+                .catch((error) => {
+                    console.error('Error creating room:', error.message);
+                });
 
             this.inputElem.value = '';
         });
@@ -302,7 +341,6 @@ function main() {
     window.addEventListener("popstate", renderRoute);
     renderRoute();
 
-    // -- assignment3 task1
     function refreshLobby() {
 
         Service.getAllRooms()
@@ -321,7 +359,7 @@ function main() {
     setInterval(refreshLobby, 6000);
 
 
-    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby ,refreshLobby});
+    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby, refreshLobby});
 
 }
 
