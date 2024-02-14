@@ -1,10 +1,10 @@
 // Removes the contents of the given DOM element (equivalent to elem.innerHTML = '' but faster)
-function emptyDOM (elem){
+function emptyDOM (elem) {
     while (elem.firstChild) elem.removeChild(elem.firstChild);
 }
 
 // Creates a DOM element from the given HTML string
-function createDOM (htmlString){
+function createDOM (htmlString) {
     // let template = document.createElement('template');
     let template = document.createElement('template');
     template.innerHTML = htmlString.trim();
@@ -21,7 +21,7 @@ var messageBox = createDOM(
 // -- assignment3 task1
 var Service = {
     origin: window.location.origin,
-    getAllRooms: function(){
+    getAllRooms: function() {
         const myPromise = new Promise((resolve, reject) => {
             const xhttp = new XMLHttpRequest();
             
@@ -29,13 +29,13 @@ var Service = {
             xhttp.send();
 
             xhttp.onreadystatechange = function(){
-                if(xhttp.readyState === 4){
-                    if(xhttp.status === 200){
+                if (xhttp.readyState === 4) {
+                    if(xhttp.status === 200) {
                         resolve(JSON.parse(xhttp.response));
+                    } else {
+                        reject(new Error(xhttp.response));
                     }
-                }else{
-                    reject(new Error(xhttp.response));
-                }
+                } 
             };
 
             xhttp.onerror = function(err) {
@@ -45,14 +45,11 @@ var Service = {
         });
 
         return myPromise;
-        
-
     }
-
 }
 
-class Lobby{
-    constructor(){
+class Lobby {
+    constructor() {
         this.rooms = {};
 
         // this.addRoom("room-1", "room1");
@@ -60,12 +57,12 @@ class Lobby{
         // this.addRoom("room-3", "room3");
     }
 
-    getRoom(roomId){
+    getRoom(roomId) {
         // search through the rooms and return the room with id = roomId if found
         return this.rooms[roomId];
     }
 
-    addRoom(id, name, image, messages){
+    addRoom(id, name, image, messages) {
         // create a new Room object, using the given arguments, and add the object in the this.rooms array
         this.rooms[id] = new Room(id, name, image, messages);
 
@@ -76,7 +73,7 @@ class Lobby{
     }
 }
 
-class LobbyView{
+class LobbyView {
     // create the DOM for the "lobby page"
     constructor(lobby) {
         // lobby page
@@ -127,7 +124,7 @@ class LobbyView{
 }
 
 
-class ChatView{
+class ChatView {
     // create the DOM for the "chat page" 
     constructor() {
         // chat page
@@ -205,9 +202,9 @@ class ChatView{
     }
 }
 
-class ProfileView{
+class ProfileView {
     // create the DOM for the "profile page" 
-    constructor(){
+    constructor() {
         // profile page
         this.elem = createDOM (`
         <div class="content">
@@ -239,15 +236,15 @@ class ProfileView{
 
 
 
-class Room{
-    constructor(id, name, image, messages){
+class Room {
+    constructor(id, name, image, messages) {
         this.id = id;
         this.name = name;
         this.image = typeof image !== 'undefined' ? image: "assets/everyone-icon.png";
         this.messages = typeof messages !== 'undefined' ? messages :[];
     }
 
-    addMessage(username, text){
+    addMessage(username, text) {
         if(text.trim().length==0){
             return;
         } else {
@@ -265,23 +262,23 @@ class Room{
     }
 }
 
-function main () {
+function main() {
     
     let lobby = new Lobby();
     let lobbyView = new LobbyView(lobby);
     let chatView = new ChatView();
     let profileView = new ProfileView();
     
-    function renderRoute(){
+    function renderRoute() {
         let path = window.location.hash;
 
         let pageview = document.getElementById("page-view");
 
-        if(path=="#/" || path==""){
+        if (path=="#/" || path=="") {
 		    emptyDOM(pageview);
 		    pageview.appendChild(lobbyView.elem);
         }
-        else if(path.startsWith("#/chat")){
+        else if (path.startsWith("#/chat")) {
             emptyDOM(pageview);
             // extract the room ID
             let roomId = path.substring("#/chat/".length);
@@ -296,7 +293,7 @@ function main () {
                 console.error(`Room with ID ${roomId} not found.`);
             }
         }
-        else if(path.startsWith("#/profile")){
+        else if (path.startsWith("#/profile")) {
             emptyDOM(pageview);
 		    pageview.appendChild(profileView.elem);
         }
@@ -306,8 +303,19 @@ function main () {
     renderRoute();
 
     // -- assignment3 task1
-    function refreshLobby(){
+    function refreshLobby() {
 
+        Service.getAllRooms()
+            .then(function(roomsFromServer) {
+                roomsFromServer.forEach(function(room) {
+                    if (lobby.rooms.hasOwnProperty(room.id)) {
+                        lobby.rooms[room.id].name = room.name;
+                        lobby.rooms[room.id].image = room.image;
+                    } else {
+                        lobby.addRoom(room.id, room.name, room.image, room.messages);
+                    }
+                });
+            });
     }
     refreshLobby();
     setInterval(refreshLobby, 6000);
