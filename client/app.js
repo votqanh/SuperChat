@@ -162,10 +162,9 @@ class LobbyView {
     }
 }
 
-
 class ChatView {
     // create the DOM for the "chat page" 
-    constructor() {
+    constructor(socket) {
         // chat page
         this.elem = createDOM (`
             <div class="content">
@@ -202,13 +201,25 @@ class ChatView {
                 this.sendMessage();
             }
         });
+
+        this.socket = socket;
+
+
+
+
     }
+
 
     sendMessage() {
         // check if this.room is set before calling addMessage
         if (this.room) {
             this.room.addMessage(profile.username, this.inputElem.value);
-            this.inputElem.value = '';
+            // this.inputElem.value = '';
+            this.socket.send(JSON.stringify({
+                roomId : this.room.id,
+                username : profile.username,
+                text : this.inputElem.value
+            }));
         } else {
             console.error("Room is not set. Cannot send message.");
         }
@@ -302,10 +313,20 @@ class Room {
 }
 
 function main() {
+
+
+    let socket = new WebSocket("ws://localhost:8000");
+    // let socket = new WebSocket("3.98.223.41:8000");
+    socket.addEventListener('message', function(event) {
+        var incomingMess = JSON.parse(event.data);
+        var selectedRoom = lobby.getRoom(incomingMess.roomId);
+        selectedRoom.addMessage(incomingMess.username, incomingMess.text);
+    });
+
     
     let lobby = new Lobby();
     let lobbyView = new LobbyView(lobby);
-    let chatView = new ChatView();
+    let chatView = new ChatView(socket);
     let profileView = new ProfileView();
     
     function renderRoute() {
@@ -359,7 +380,7 @@ function main() {
     setInterval(refreshLobby, 6000);
 
 
-    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby, refreshLobby});
+    cpen322.export(arguments.callee, { renderRoute, lobbyView, chatView, profileView, lobby, refreshLobby, socket});
 
 }
 

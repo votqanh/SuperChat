@@ -2,6 +2,8 @@ const cpen322 = require('./cpen322-tester.js');
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
+const ws = require('ws');
+
 
 function logRequest(req, res, next){
 	console.log(`${new Date()}  ${req.ip} : ${req.method} ${req.path}`);
@@ -9,12 +11,33 @@ function logRequest(req, res, next){
 }
 
 const host = 'localhost';
-const port = 3000;
+const port = 3000; 
 const clientApp = path.join(__dirname, 'client');
+
+const broker = new ws.Server({port: 8000});
+
+broker.on('connection', (ws) => {
+	ws.on('message', (data) => {
+
+	  	let parsedData = JSON.parse(data);
+		// console.log(data);
+
+	  	messages[parsedData.roomId].push({
+			username: parsedData.username,
+      		text: parsedData.text
+	  	})
+
+	  	for (let client of broker.clients) {
+			if (client !== ws) {
+		  		client.send(JSON.stringify(parsedData));
+			}
+	  	}
+	})
+})
+
 
 // express app
 let app = express();
-
 app.use(express.json()) 						// to parse application/json
 app.use(express.urlencoded({ extended: true })) // to parse application/x-www-form-urlencoded
 app.use(logRequest);							// logging for debug
@@ -81,4 +104,4 @@ app.route('/chat').post((req, res) => {
 });
 
 cpen322.connect('http://3.98.223.41/cpen322/test-a3-server.js');
-cpen322.export(__filename, { app, chatrooms, messages });
+cpen322.export(__filename, { app, chatrooms, messages, broker});
