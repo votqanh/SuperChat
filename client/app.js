@@ -106,7 +106,6 @@ class LobbyView {
     // create the DOM for the "lobby page"
     constructor(lobby) {
         // lobby page
-        // need to add page view div? 
         this.elem = createDOM (`
             <div class = "content">
                 <ul class = "room-list"></ul>
@@ -130,7 +129,7 @@ class LobbyView {
                 .then((newRoom) => {
                     console.log("HOOOO");
                     console.log(newRoom);
-                    this.lobby.addRoom(newRoom.id, newRoom.name, newRoom.image, []);
+                    this.lobby.addRoom(newRoom._id, newRoom.name, newRoom.image, []);
                 })
 
                 // for debugging
@@ -367,11 +366,11 @@ function main() {
         Service.getAllRooms()
             .then(function(roomsFromServer) {
                 roomsFromServer.forEach(function(room) {
-                    if (lobby.rooms.hasOwnProperty(room.id)) {
-                        lobby.rooms[room.id].name = room.name;
-                        lobby.rooms[room.id].image = room.image;
+                    if (lobby.rooms.hasOwnProperty(room._id)) {
+                        lobby.rooms[room._id].name = room.name;
+                        lobby.rooms[room._id].image = room.image;
                     } else {
-                        lobby.addRoom(room.id, room.name, room.image, room.messages);
+                        lobby.addRoom(room._id, room.name, room.image, room.messages);
                     }
                 });
             });

@@ -3,6 +3,20 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const ws = require('ws');
+const Database = require('./Database')
+
+let mongoUrl = 'mongodb://127.0.0.1:27017'; // 'mongodb://localhost:27017' makes connection error
+let dbName = 'cpen322-messenger';
+let db = new Database(mongoUrl, dbName);
+
+let messages = {};
+let messageBlockSize = 10; // 
+
+db.getRooms().then(rooms => {
+	for (let room of rooms) {
+	  	messages[room._id] = [];
+	}
+});
 
 
 function logRequest(req, res, next){
@@ -48,60 +62,64 @@ app.listen(port, () => {
 	console.log(`${new Date()}  App Started. Listening on ${host}:${port}, serving ${clientApp}`);
 });
 
-const chatrooms = [
-	{
-		id: '1',
-		name: "hw help",
-		image: "x"
-	},
-	{
-		id: '2',
-        name: 'Tech Talk',
-        image: 'y'
-	},
-	{
-	    id: '3',
-        name: 'games',
-        image: 'z'
-	}
-];
+// const chatrooms = [
+// 	{
+// 		id: '1',
+// 		name: "hw help",
+// 		image: "x"
+// 	},
+// 	{
+// 		id: '2',
+//         name: 'Tech Talk',
+//         image: 'y'
+// 	},
+// 	{
+// 	    id: '3',
+//         name: 'games',
+//         image: 'z'
+// 	}
+// ];
 
-const messages = {};
 
-chatrooms.forEach(room => {
-	messages[room.id] = [];
-});
-
+//
 app.route('/chat').get((req, res) => {
-    const chatData = chatrooms.map(room => ({
-        id: room.id,
-        name: room.name,
-        image: room.image,
-        messages: messages[room.id]
-    }));
 
-    res.json(chatData);
+	db.getRooms().then(rooms => {
+		const chats = rooms.map(room => Object.assign({
+			messages: messages[room._id] 
+		}, room));
+		return res.status(200).json(chats);
+	})
+	.catch(err => res.status(500).end(err))
+	
 });
+
+
+
+app.route('/chat/:room_id').get((req, res) => {
+
+		db.getRoom(req.params.room_id).then(room => {
+			if (!room) return res.status(404).end(`GET /chat/${req.params.room_id} - room not found`);
+			return res.status(200).json(room);
+		})
+		.catch(err => res.status(500).end(err))
+
+
+});
+
 
 app.route('/chat').post((req, res) => {
-    const data = req.body;
 
-	if (data && data.name) {
-		const newRoom = {
-			id: (chatrooms.length + 1).toString(), // should we come up with better way?
-			name: data.name,
-			image: data.image || ''
-		};
+	let {name,image,_id} = req.body;
+	let newRoom = {name,image,_id};
+	db.addRoom(newRoom)
+	.then(room => {
+		messages[room._id] = [];
+		return res.status(200).json(room)
+	})
+	.catch(err => res.status(400).end(err));
 
-		chatrooms.push(newRoom);
-		messages[newRoom.id] = [];
-
-		res.status(200).json(newRoom);
-
-	} else {
-		res.status(400).json({ error: 'Invalid data. The "name" field is required.' });
-	}
 });
 
-cpen322.connect('http://3.98.223.41/cpen322/test-a3-server.js');
-cpen322.export(__filename, { app, chatrooms, messages, broker});
+cpen322.connect('http://3.98.223.41/cpen322/test-a4-server.js');
+cpen322.export(__filename, { app, messages, broker, db, messageBlockSize});
