@@ -1,34 +1,25 @@
-// const { MongoClient, ObjectID } = require('mongodb');	// require the mongodb driver
-const { MongoClient } = require('mongodb');
-const ObjectID = require('mongodb').ObjectId;
+const { MongoClient, ObjectId } = require('mongodb');	// require the mongodb driver
 
 /**
- * Uses mongodb v4.2+ - [API Documentation](http://mongodb.github.io/node-mongodb-native/4.2/)
+ * Uses mongodb v6.3 - [API Documentation](http://mongodb.github.io/node-mongodb-native/6.3/)
  * Database wraps a mongoDB connection to provide a higher-level abstraction layer
  * for manipulating the objects in our cpen322 app.
  */
 function Database(mongoUrl, dbName){
 	if (!(this instanceof Database)) return new Database(mongoUrl, dbName);
- 	this.connected = new Promise((resolve, reject) => {
-  		const client = new MongoClient(mongoUrl);
+	this.connected = new Promise((resolve, reject) => {
+		const client = new MongoClient(mongoUrl);
 
-  		client.connect()
-			.then(() => {
-   				// Ping the dbName to ensure it exists
-   				return client.db(dbName).command({ ping: 1 });
-  			})
-			.then(() => {
-  	 			console.log('[MongoClient] Connected to ' + mongoUrl + '/' + dbName);
-   				resolve(client.db(dbName));
-  			})
-  			.catch((err) => {
-  	 			reject(err);
- 		 	});
+		client.connect()
+		.then(() => {
+			console.log('[MongoClient] Connected to ' + mongoUrl + '/' + dbName);
+			resolve(client.db(dbName));
+		}, reject);
 	});
- 	this.status = () => this.connected.then(
-  		db => ({ error: null, url: mongoUrl, db: dbName }),
-  		err => ({ error: err })
- 	);
+	this.status = () => this.connected.then(
+		db => ({ error: null, url: mongoUrl, db: dbName }),
+		err => ({ error: err })
+	);
 }
 
 
@@ -57,7 +48,7 @@ Database.prototype.getRoom = function(room_id){
 			 * and resolve the result */
 
 
-			const roomId = (typeof room_id === 'object' || room_id.length !== 24) ? room_id : new ObjectID(room_id);
+			const roomId = (typeof room_id === 'object' || room_id.length !== 24) ? room_id : new ObjectId(room_id);
 	
 			db.collection('chatrooms').findOne({ _id: roomId })
 				.then(room => resolve(room))
