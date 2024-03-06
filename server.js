@@ -5,7 +5,7 @@ const express = require('express');
 const ws = require('ws');
 const Database = require('./Database')
 
-let mongoUrl = 'mongodb://127.0.0.1:27017'; // 'mongodb://localhost:27017' makes connection error
+let mongoUrl = 'mongodb://localhost:27017'; // 'mongodb://localhost:27017' makes connection error
 let dbName = 'cpen322-messenger';
 let db = new Database(mongoUrl, dbName);
 
@@ -19,7 +19,7 @@ db.getRooms().then(rooms => {
 });
 
 
-function logRequest(req, res, next){
+function logRequest(req, res, next) {
 	console.log(`${new Date()}  ${req.ip} : ${req.method} ${req.path}`);
 	next();
 }
@@ -34,7 +34,6 @@ broker.on('connection', (ws) => {
 	ws.on('message', (data) => {
 
 	  	let parsedData = JSON.parse(data);
-		// console.log(data);
 
 	  	messages[parsedData.roomId].push({
 			username: parsedData.username,
@@ -46,8 +45,27 @@ broker.on('connection', (ws) => {
 		  		client.send(JSON.stringify(parsedData));
 			}
 	  	}
-	})
-})
+
+        if (messages[parsedData.roomId].length === messageBlockSize) {
+            // Create a new conversation object
+            const conversation = {
+                room_id: parsedData.roomId,
+                timestamp: Date.now(), // UNIX time in milliseconds
+				messages: messages[parsedData.roomId]
+            };
+
+            // Add the new conversation to the database
+            db.addConversation(conversation)
+                .then(() => {
+                    // successfully save conversation into the database, empty the messages array
+					messages[parsedData.roomId] = [];
+                })
+                .catch((error) => {
+                    console.error("Error saving Conversation to the database:", error);
+                });
+        }
+	});
+});
 
 
 // express app
@@ -107,6 +125,25 @@ app.route('/chat/:room_id').get((req, res) => {
 
 });
 
+app.get('/chat/:room_id/messages', async (req, res) => {
+	try {
+		const room_id = req.params.room_id;
+		const beforeTimestamp = parseInt(req.query.before);
+
+		// Validate the input parameters
+		if (!room_id || isNaN(beforeTimestamp)) {
+		return res.status(400).json({ error: 'Invalid parameters' });
+		}
+
+		const conversation = await db.getLastConversation(room_id, beforeTimestamp);
+		
+		res.json(conversation);
+	} catch (error) {
+		console.error('Error handling GET request:', error);
+		res.status(500).json({ error: 'Internal Server Error' });
+	}
+  });
+
 
 app.route('/chat').post((req, res) => {
 
@@ -122,4 +159,4 @@ app.route('/chat').post((req, res) => {
 });
 
 cpen322.connect('http://3.98.223.41/cpen322/test-a4-server.js');
-cpen322.export(__filename, { app, messages, broker, db, messageBlockSize});
+cpen322.export(__filename, { app, db, messages, messageBlockSize });

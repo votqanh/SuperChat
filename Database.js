@@ -22,7 +22,6 @@ function Database(mongoUrl, dbName){
 	);
 }
 
-
 Database.prototype.getRooms = function(){
 	return this.connected.then(db =>
 		new Promise((resolve, reject) => {
@@ -75,55 +74,42 @@ Database.prototype.addRoom = function(room){
 				}
 			))
 			.catch(err => reject(err));
-
-
-
 		})
 	)
 }
 
 
 
-Database.prototype.getLastConversation = function(room_id, before){
+Database.prototype.getLastConversation = function(room_id, before) {
 	return this.connected.then(db =>
 		new Promise((resolve, reject) => {
 			/* TODO: read a conversation from `db` based on the given arguments
 			 * and resolve if found */
 			if (db) {
-				if (!before) before = Date.now()
-
-	  
+				if (!before) before = Date.now();
+				
 				const query = { room_id: room_id, timestamp: { $lt: before } }
 				const options = {
 				  sort: { timestamp: -1 }
 				}
-	  
 
 			  	db.collection('conversations')
           			.find(query, options)
           			.toArray()
           			.then(conversations => {
-            
-
             			if (conversations.length > 0) {
+							console.log(conversations[0]);
               				resolve(conversations[0]);
             			} else {
               				resolve(null);
             			}
           			})
           			.catch(err => {
-            
             			reject(err);
           			});
       		} else {
-        
         		reject('No database connection');
       		}
-
-
-
-
-
 
 		})
 	)
@@ -135,23 +121,25 @@ Database.prototype.addConversation = function(conversation){
 		new Promise((resolve, reject) => {
 			/* TODO: insert a conversation in the "conversations" collection in `db`
 			 * and resolve the newly added conversation */
-			// console.log(conversation) //
 
 			const {room_id, timestamp, messages} = conversation;
+
 			if (!room_id || !timestamp || !messages) return reject('room_id, timestamp, messages required');
 
 			db.collection('conversations').insertOne(conversation)
-			.then(
-				() => db.collection('conversations').findOne(conversation)
-				.then(pro => {
-					resolve(pro)
-				})
-			)
-			.catch(err => reject(err));
+				.then(
+					() => db.collection('conversations').findOne({
+						room_id: conversation.roomId,
+						timestamp: conversation.timestamp
+					})
+					.then(() => {
+						resolve(conversation);
+					})
+					.catch(err => reject(err))
+				)
+				.catch(err => reject(err));
 		})
 	)
 }
 
 module.exports = Database;
-
-
