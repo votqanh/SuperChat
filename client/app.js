@@ -344,7 +344,7 @@ class ProfileView {
 }
 
 function* makeConversationLoader(room) {
-    let lastFetchedTimestamp = Date.now();
+    let lastFetchedTimestamp = room.creationTime;
 
     while (room.canLoadConversation) {
         room.canLoadConversation = false;
@@ -373,6 +373,7 @@ class Room {
         this.messages = typeof messages !== 'undefined' ? messages :[];
         this.getLastConversation = makeConversationLoader(this);
         this.canLoadConversation = true;
+        this.creationTime = Date.now();
     }
 
     addMessage(username, text) {
