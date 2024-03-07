@@ -98,7 +98,6 @@ Database.prototype.getLastConversation = function(room_id, before) {
           			.toArray()
           			.then(conversations => {
             			if (conversations.length > 0) {
-							console.log(conversations[0]);
               				resolve(conversations[0]);
             			} else {
               				resolve(null);
@@ -124,7 +123,7 @@ Database.prototype.addConversation = function(conversation){
 
 			const {room_id, timestamp, messages} = conversation;
 
-			if (!room_id || !timestamp || !messages) return reject('room_id, timestamp, messages required');
+			if (!room_id || !timestamp || !messages) return reject('one or more of {room_id, timestamp, messages} is missing');
 
 			db.collection('conversations').insertOne(conversation)
 				.then(

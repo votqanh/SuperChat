@@ -144,18 +144,12 @@ class LobbyView {
 
         this.lobby = lobby;
 
-        this.buttonElem.addEventListener('click', () => {
-            const roomName = this.inputElem.value;
-
-            Service.addRoom({name: roomName, image: ''})
-                .then((newRoom) => {
-                    this.lobby.addRoom(newRoom._id, newRoom.name, newRoom.image, []);
-                })
-
-                // for debugging
-                .catch((error) => {
-                    console.error('Error creating room:', error.message);
-                });
+        this.buttonElem.addEventListener('click', () => this.createNewRoom());
+        this.inputElem.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // prevents linebreak
+                this.createNewRoom();
+            }
         });
 
         // draw the initial list of rooms
@@ -177,6 +171,21 @@ class LobbyView {
             this.listElem.appendChild(listItem);
         }
     
+    }
+
+    createNewRoom() {
+        const roomName = this.inputElem.value;
+        this.inputElem.value = '';
+
+            Service.addRoom({name: roomName, image: ''})
+                .then((newRoom) => {
+                    this.lobby.addRoom(newRoom._id, newRoom.name, newRoom.image, []);
+                })
+
+                // for debugging
+                .catch((error) => {
+                    console.error('Error creating room:', error.message);
+                });
     }
 }
 
@@ -214,8 +223,9 @@ class ChatView {
         
         this.room = null;
         this.buttonElem.addEventListener('click', () => this.sendMessage());
-        this.inputElem.addEventListener('keyup', (event) => {
+        this.inputElem.addEventListener('keydown', (event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault(); // prevents linebreak
                 this.sendMessage();
             }
         });
