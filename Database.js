@@ -5,7 +5,7 @@ const { MongoClient, ObjectId } = require('mongodb');	// require the mongodb dri
  * Database wraps a mongoDB connection to provide a higher-level abstraction layer
  * for manipulating the objects in our cpen322 app.
  */
-function Database(mongoUrl, dbName){
+function Database(mongoUrl, dbName) {
 	if (!(this instanceof Database)) return new Database(mongoUrl, dbName);
 	this.connected = new Promise((resolve, reject) => {
 		const client = new MongoClient(mongoUrl);
@@ -22,12 +22,9 @@ function Database(mongoUrl, dbName){
 	);
 }
 
-Database.prototype.getRooms = function(){
+Database.prototype.getRooms = function() {
 	return this.connected.then(db =>
 		new Promise((resolve, reject) => {
-			/* TODO: read the chatrooms from `db`
-			 * and resolve an array of chatrooms */
-			
 			if(db){
 				resolve(db.collection('chatrooms').find().toArray());
 			}else{
@@ -40,13 +37,9 @@ Database.prototype.getRooms = function(){
 }
 
 
-Database.prototype.getRoom = function(room_id){
+Database.prototype.getRoom = function(room_id) {
 	return this.connected.then(db =>
 		new Promise((resolve, reject) => {
-			/* TODO: read the chatroom from `db`
-			 * and resolve the result */
-
-
 			const roomId = (typeof room_id === 'object' || room_id.length !== 24) ? room_id : new ObjectId(room_id);
 	
 			db.collection('chatrooms').findOne({ _id: roomId })
@@ -58,13 +51,9 @@ Database.prototype.getRoom = function(room_id){
 	)
 }
 
-Database.prototype.addRoom = function(room){
+Database.prototype.addRoom = function(room) {
 	return this.connected.then(db => 
 		new Promise((resolve, reject) => {
-			/* TODO: insert a room in the "chatrooms" collection in `db`
-			 * and resolve the newly added room */
-
-
 			if (!room.name || room.name.trim().length === 0) return reject('name field required');
 			db.collection('chatrooms').insertOne(room)
 			.then(
@@ -83,8 +72,6 @@ Database.prototype.addRoom = function(room){
 Database.prototype.getLastConversation = function(room_id, before) {
 	return this.connected.then(db =>
 		new Promise((resolve, reject) => {
-			/* TODO: read a conversation from `db` based on the given arguments
-			 * and resolve if found */
 			if (db) {
 				if (!before) before = Date.now();
 				
@@ -115,12 +102,9 @@ Database.prototype.getLastConversation = function(room_id, before) {
 }
 
 
-Database.prototype.addConversation = function(conversation){
+Database.prototype.addConversation = function(conversation) {
 	return this.connected.then(db =>
 		new Promise((resolve, reject) => {
-			/* TODO: insert a conversation in the "conversations" collection in `db`
-			 * and resolve the newly added conversation */
-
 			const {room_id, timestamp, messages} = conversation;
 
 			if (!room_id || !timestamp || !messages) return reject('one or more of {room_id, timestamp, messages} is missing');
@@ -137,6 +121,19 @@ Database.prototype.addConversation = function(conversation){
 					.catch(err => reject(err))
 				)
 				.catch(err => reject(err));
+		})
+	)
+}
+
+Database.prototype.getUser = function(username) {
+	return this.connected.then(db => 
+		new Promise((resolve, reject) => {
+			// Query the database for a user with the given username
+			db.collection('users').findOne({ username })
+			.then((user) => {
+				resolve(user);
+			})
+			.catch(err => reject(null));
 		})
 	)
 }

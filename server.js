@@ -4,10 +4,13 @@ const fs = require('fs');
 const express = require('express');
 const ws = require('ws');
 const Database = require('./Database')
+const SessionManager = require('./SessionManager');
+const crypto = require('crypto');
 
 let mongoUrl = 'mongodb://localhost:27017'; // 'mongodb://localhost:27017' makes connection error
 let dbName = 'cpen322-messenger';
 let db = new Database(mongoUrl, dbName);
+const sessionManager = new SessionManager();
 
 let messages = {};
 let messageBlockSize = 10; // 
@@ -17,7 +20,6 @@ db.getRooms().then(rooms => {
 	  	messages[room._id] = [];
 	}
 });
-
 
 function logRequest(req, res, next) {
 	console.log(`${new Date()}  ${req.ip} : ${req.method} ${req.path}`);
@@ -67,7 +69,6 @@ broker.on('connection', (ws) => {
 	});
 });
 
-
 // express app
 let app = express();
 app.use(express.json()) 						// to parse application/json
@@ -76,30 +77,35 @@ app.use(logRequest);							// logging for debug
 
 // serve static files (client-side)
 app.use('/', express.static(clientApp, { extensions: ['html'] }));
+
+// 4.2
+// app.use(sessionManager.middleware);
+
+// Define a custom error handler
+app.use((err, req, res, next) => {
+    // Check if the error is a SessionError instance
+    if (err instanceof SessionManager.Error) {
+        // Check the Accept header for content negotiation
+        const acceptHeader = req.get('Accept');
+
+        if (acceptHeader && acceptHeader.includes('application/json')) {
+            // If Accept header specifies application/json, respond with HTTP 401 and error message
+            res.status(401).json({ error: err.message });
+        } else {
+            // Otherwise, redirect to the /login page
+            res.redirect('/login');
+        }
+    } else {
+        // If the error is not a SessionError object, return HTTP 500
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
 app.listen(port, () => {
 	console.log(`${new Date()}  App Started. Listening on ${host}:${port}, serving ${clientApp}`);
 });
 
-// const chatrooms = [
-// 	{
-// 		id: '1',
-// 		name: "hw help",
-// 		image: "x"
-// 	},
-// 	{
-// 		id: '2',
-//         name: 'Tech Talk',
-//         image: 'y'
-// 	},
-// 	{
-// 	    id: '3',
-//         name: 'games',
-//         image: 'z'
-// 	}
-// ];
-
-
-//
 app.route('/chat').get((req, res) => {
 
 	db.getRooms().then(rooms => {
@@ -111,8 +117,6 @@ app.route('/chat').get((req, res) => {
 	.catch(err => res.status(500).end(err))
 	
 });
-
-
 
 app.route('/chat/:room_id').get((req, res) => {
 
@@ -144,9 +148,7 @@ app.get('/chat/:room_id/messages', async (req, res) => {
 	}
   });
 
-
 app.route('/chat').post((req, res) => {
-
 	let {name,image,_id} = req.body;
 	let newRoom = {name,image,_id};
 	db.addRoom(newRoom)
@@ -158,5 +160,49 @@ app.route('/chat').post((req, res) => {
 
 });
 
-cpen322.connect('http://3.98.223.41/cpen322/test-a4-server.js');
-cpen322.export(__filename, { app, db, messages, messageBlockSize });
+function isCorrectPassword(password, saltedHash) {
+	// Extract the salt and hash from the stored salted hash
+    const storedSalt = saltedHash.substring(0, 20);
+    const storedHash = saltedHash.substring(20);
+
+    // Hash the submitted password using the stored salt
+    const submittedHash = crypto.createHash('sha256')
+        .update(password + storedSalt)
+        .digest('base64');
+
+    return submittedHash === storedHash;
+}
+
+app.route('/login').post(async (req, res) => {
+	const { username, password } = req.body;
+
+    try {
+        // Use the getUser method to look up the user data from the database
+        const user = await db.getUser(username);
+
+        if (!user) {
+            // If the user is not found, redirect back to the /login page
+            res.redirect('/login');
+            return;
+        }
+
+        if (isCorrectPassword(password, user.password)) {
+            // If the password is correct, create a new user session
+            sessionManager.createSession(res, username);
+
+            // Redirect to the home page (change the path accordingly)
+            res.redirect('/');
+        } else {
+            // If the password is incorrect, redirect back to the /login page
+            res.redirect('/login');
+        }
+    } catch (error) {
+        // Handle any errors that might occur during the process
+        console.error('Error during login:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+cpen322.connect('http://3.98.223.41/cpen322/test-a5-server.js');
+cpen322.export(__filename, { app, db, messages, messageBlockSize, sessionManager, isCorrectPassword });
