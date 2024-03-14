@@ -173,10 +173,14 @@ app.listen(port, () => {
     app.use("/index.html", sessionManager.middleware);
     app.use("/index", sessionManager.middleware);
   
-  
+ 
 
 
-    
+
+    app.get("/", sessionManager.middleware, (req, res) =>{
+        res.status(200).send();
+        res.redirect("/login");
+    });
 
   app.post('/chat', sessionManager.middleware, (req, res) =>{
 	let request = req.body;
@@ -202,7 +206,7 @@ app.listen(port, () => {
 		
 	} 
 	else{
-		res.status(401).send("malformed request");
+		res.status(400).send("malformed request");
 		return;
 	}
 })
@@ -211,7 +215,7 @@ app.listen(port, () => {
   
 
   
-  app.get("/logout", (req, res) =>{
+app.get("/logout", (req, res) =>{
 	sessionManager.deleteSession(req);
 	res.redirect("/login");
 });
@@ -244,8 +248,10 @@ app.post('/login', (req, res) =>{
 	}
 })
 
-// app.use('/', sessionManager.middleware, express.static(clientApp, { extensions: ['html'] }));
+
 app.use('/', express.static(clientApp, { extensions: ['html'] }));
+
+
 app.use('/login', express.static(clientApp+'/login.html', { extensions: ['html'] }));
   
 function isCorrectPassword(password, saltedHash) {
