@@ -50,6 +50,7 @@ function SessionManager (){
 	this.middleware = (request, response, next) => {
 		// Try to read the cookie information from the request
         const cookieHeader = request.headers.cookie;
+		
 
 
         if (!cookieHeader) {
@@ -74,6 +75,7 @@ function SessionManager (){
         // If the session exists, assign the username and session properties to the request object
         request.username = sessions[token].username;
         request.session = token;
+
 
 
         // Call next with zero arguments to trigger the next middleware

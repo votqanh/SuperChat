@@ -16,7 +16,15 @@ var messageBox = createDOM(
         <span>Alice</span>
         <span>Hello World</span>
     </div>`
-    );
+);
+
+
+function sanitize(string) {
+    let regexp = /on[a-zA-Z]+="|<\/script>|<script/g;
+    return string.replace(regexp, function(match) {
+        return match.startsWith("on") ? "censored" : "&lt;script";
+    });
+}
 
 var Service = {
     origin: window.location.origin,
@@ -101,30 +109,28 @@ var Service = {
             xhr.send();
         });
     },
-
-    getProfile: function() {
-        return new Promise((resolve, reject) => {
-          let xhr = new XMLHttpRequest();
-          xhr.open("GET", Service.origin + "/profile");
-          xhr.send(null);
-      
-          xhr.onload = function() {
-            if (xhr.status == 200){
-              console.log("now logging response");
-              //console.log();
-              resolve(JSON.parse(xhr.response));
+    getProfile: function () {
+        var xmlhr = new XMLHttpRequest();
+        xmlhr.open("GET", Service.origin + "/profile");
+        xmlhr.send(null);
+        return new Promise((resolve, reject)=> {
+            xmlhr.onload = function() {
+                if (!(xmlhr.status == 200)) {
+                    reject(new Error(xmlhr.responseText));
+                }
+                else {
+                    resolve(JSON.parse(xmlhr.responseText));
+                }
             }
-            else {
-              reject(new Error("Failed to get last conversation, responded"));
+            xmlhr.onerror = function() {
+                reject(new Error(xmlhr.responseText));
             }
-          }
-      
-          xhr.onerror = function() {
-            reject(new Error("Failed to get last conversation"));
-          }
-      
+            
         });
-      }
+    }
+
+
+        
 }
 
 class Lobby {
@@ -320,7 +326,7 @@ class ChatView {
             const messageBox = createDOM(`
                 <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                     <span class="message-user">${message.username}</span>
-                    <span class="message-text">${message.text}</span>
+                    <span class="message-text">${sanitize(message.text)}</span>
                 </div>
             `);
 
@@ -335,7 +341,7 @@ class ChatView {
         const messageBox = createDOM(`
             <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                 <span class="message-user">${message.username}</span>
-                <span class="message-text">${message.text}</span>
+                <span class="message-text">${sanitize(message.text)}</span>
             </div>
         `);
 
@@ -500,7 +506,20 @@ function main() {
     refreshLobby();
     setInterval(refreshLobby, 6000);
 
-    Service.getProfile();
+    // Service.getProfile().then(
+    //     (result) => {
+    //         profile.username = result.username;
+    //     }
+    // );
+
+    Service.getProfile().then(
+        (result) => {
+            profile = result;
+        },
+        (error) => {
+            console.log(error);
+        }
+    )
 
 
     cpen322.export(arguments.callee, { lobby, chatView });

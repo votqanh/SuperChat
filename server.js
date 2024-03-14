@@ -22,6 +22,10 @@ db.getRooms().then(rooms => {
 	}
 });
 
+function logRequest(req, res, next){
+	console.log(`${new Date()}  ${req.ip} : ${req.method} ${req.path}`);
+	next();
+}
 
 
 const host = 'localhost';
@@ -29,69 +33,16 @@ const port = 3000;
 const clientApp = path.join(__dirname, 'client');
 
 const broker = new ws.Server({port: 8000});
-
-broker.on('connection', function connection(ws, incoming) {
-
-    let successParse = true;
-	let cookieObj = ""
-
-	if(incoming.headers.cookie == null){
-		ws.close();
-	}
-	try{
-		 cookieObj = parseCookie(incoming.headers.cookie.toString());
-	} catch (error) {
-		successParse = false;
-		ws.close();
-	}
-	if(successParse && sessionManager.getUsername(cookieObj[`cpen322-session`]) == null){
-		ws.close();
-	}
-
-
-	ws.on('message', (data) => {
-        let parsedData = JSON.parse(data.data);
-        // Overwrite the username field with the username associated with the socket's session
-
-        parsed.username = sessionManager.getUsername(cookieObj[`cpen322-session`]);
-
-        
-
-        messages[parsedData.roomId].push({
-            username: parsedData.username,
-            text: parsedData.text
-        });
-
-
-        for (let client of broker.clients) {
-            if (client !== ws) {
-                client.send(JSON.stringify(parsedData));
-            }
+// var gr_retval = db.getRooms();
+db.getRooms().then(
+    (resolve) => {
+        for (let room of resolve) {
+            messages[room._id] = [];
         }
+    },
+    (reject) => {}
+);
 
-
-
-        if (messages[parsedData.roomId].length === messageBlockSize) {
-            // Create a new conversation object
-            const conversation = {
-                room_id: parsedData.roomId,
-                timestamp: Date.now(), // UNIX time in milliseconds
-                messages: messages[parsedData.roomId]
-            };
-
-            // Add the new conversation to the database
-            db.addConversation(conversation)
-                .then(() => {
-                    // successfully save conversation into the database, empty the messages array
-                    messages[parsedData.roomId] = [];
-                })
-                .catch((error) => {
-                    console.error("Error saving Conversation to the database:", error);
-                });
-        }
-    });
-
-});
 
 // express app
 let app = express();
@@ -99,161 +50,213 @@ app.use(express.json()) 						// to parse application/json
 app.use(express.urlencoded({ extended: true })) // to parse application/x-www-form-urlencoded
 app.use(logRequest);
 
-function logRequest(req, res, next) {
-	console.log(`${new Date()}  ${req.ip} : ${req.method} ${req.path}`);
-	next();
-}
+app.route('/login').post(
+	function (req, res, next) {
+		db.getUser(req.body.username).then(
+			(resolve) => {
+				if (resolve != null && isCorrectPassword(req.body.password, resolve.password)) {
+					sessionManager.createSession(res, resolve.username);
+					res.redirect('/');
+				}
+				else
+					res.redirect('/login');
+			},
+			(reject) => {}
+		);
+	}
+)
+
+app.route('/logout').get(
+	function (req, res, next) {
+		sessionManager.deleteSession(req);
+		res.redirect('/login');
+	}
+)
+
+app.route('/chat/:room_id/messages').all(sessionManager.middleware).get(
+    function (req, res, next) {
+        var id = req.params['room_id'];
+        var before = req.query['before'];
+        db.getLastConversation(id, before).then(
+            (resolve) => {
+                if(resolve != null) {
+                    res.status(200);
+                    res.send(resolve);
+                }
+                else {         
+                    res.status(404);
+                    res.send(resolve);
+                }
+            },
+            (reject) => {}
+        );
+    }
+)
+
+app.route('/chat/:room_id').all(sessionManager.middleware).get(
+    function (req, res, next) {
+        var id = req.params['room_id'];
+        var room = db.getRoom(id)
+        room.then(
+            (resolve) => {
+                if (resolve != null) {
+                    res.status(200);
+                    res.send(resolve);
+                }
+                else {
+                    res.status(404);
+                    res.send(new Error('Room ' + id + ' was not found'));
+                }
+            },
+            (reject) => {}
+        );
+    }
+)
+
+app.route('/chat').all(sessionManager.middleware)
+    .get(function (req, res, next) {
+          var ObjsArr = [];
+          db.getRooms().then((resolve)=>{
+              for(var room of resolve){
+                  var innerObj  = {};
+                  innerObj["_id"] = room._id; 
+                  innerObj["name"] = room.name; 
+                  innerObj["image"] = room.image; 
+                  innerObj["messages"] = messages[room._id]; 
+                  ObjsArr.push(innerObj);
+              }
+              res.send(ObjsArr)
+          })
+    })
+    .post (function (req, res, next) {
+        var arg = (req.body);
+        var ar_retval = db.addRoom(arg);
+        ar_retval.then(
+            (resolve) => {
+                messages[resolve._id] = [];
+                res.status(200);
+                res.send(resolve);
+            },
+            (reject) => {
+                res.status(400);
+                res.send(reject);
+            }
+        );
+    })
+
+// app.route('/profile').all(sessionManager.middleware)
+//     .get(
+//         function (req, res, next) {
+//             var ret = {};
+//             ret['username'] = req.username;
+//             res.status(200);
+//             res.send(ret);
+//         }
+// );
+// app.get("/profile", sessionManager.middleware, (req, res) =>{
+//     // res.status(200).send({"username": req.username});
+//     var ret = {};
+//             ret['username'] = req.username;
+
+//             res.status(200);
+//             res.send(ret);
+// });
+
+app.get('/profile', sessionManager.middleware, (req, res) => {
+
+    res.send({
+      username: req.username
+    })
+  })
+  
+
+app.route('/app.js').get(sessionManager.middleware);
+
+app.route('/index.html').get(sessionManager.middleware);
+
+app.route('/index').get(sessionManager.middleware); 
+
+app.route('/').get(sessionManager.middleware); 
+
+// serve static files (client-side)
+app.use('/', express.static(clientApp, { extensions: ['html'] }));
 
 app.listen(port, () => {
 	console.log(`${new Date()}  App Started. Listening on ${host}:${port}, serving ${clientApp}`);
 });
-  
-
-  
-
-
-
-  app.get("/chat/:room_id/messages", sessionManager.middleware, (req, res) =>{
-	let rmId = req.params.room_id.toString();
-	let time = parseInt(req.query.before);
-
-
-	db.getLastConversation(rmId, time).then((convo) =>{
-		if(convo != null){
-			res.status(200).send(convo);
-		} else {
-			res.status(401).send("");
-		}
-	})
-});
-
-
-
-  app.get("/chat/:room_id", sessionManager.middleware, (req, res) =>{
-	let rmId = req.params.room_id;
-
-	db.getRoom(rmId).then((room) => {
-		if(room != null){
-			res.status(200).send(room);
-		}
-		else{
-			res.status(401).send("Room " + rmId + " was not found");
-		}
-	});
-});
-
-
-    app.get('/chat', sessionManager.middleware, (req, res) => {
-        let result = [];
-
-        if(req.greatSuccess == false){
-            res.status(401).send("not authenticated");
-            return;
-        }
-
-        db.getRooms().then((fetchedRooms) => {
-            for(let q = 0; q < fetchedRooms.length; q++){
-                let room = {
-                    _id: fetchedRooms[q]._id,
-                    name: fetchedRooms[q].name,
-                    image: fetchedRooms[q].image,
-                    messages: messages[fetchedRooms[q]._id]
-                }
-                result.push(room);
-            }
-            res.status(200).send(result);
-        });
-    })
-
-    app.get("/profile", sessionManager.middleware, (req, res) =>{
-        res.status(200).send({"username": req.username});
-    });
-
-    app.use("/app.js", sessionManager.middleware);
-    app.use("/index.html", sessionManager.middleware);
-    app.use("/index", sessionManager.middleware);
-  
- 
-
-
-
-    app.get("/", sessionManager.middleware, (req, res) =>{
-        res.status(200).send();
-        res.redirect("/login");
-    });
-
-  app.post('/chat', sessionManager.middleware, (req, res) =>{
-	let request = req.body;
-	if("name" in request && request.name.trim()){
-		let uniqueID = request.name;
-		while(uniqueID in messages){
-			uniqueID = request.name;
-			uniqueID += Date.now();
-		}
-
-		let room = {
-			_id: uniqueID,
-			name: request.name,
-			image: request.image
-		}
-
 	
-		db.addRoom(room).then((addedroom) =>{
-			messages[addedroom._id] = [];
-			res.status(200).send(JSON.stringify(addedroom));
-		});
-		return;
-		
-	} 
-	else{
-		res.status(400).send("malformed request");
-		return;
-	}
-})
-
-
-  
-
-  
-app.get("/logout", (req, res) =>{
-	sessionManager.deleteSession(req);
-	res.redirect("/login");
-});
-  
-  
-app.post('/login', (req, res) =>{
-	let user = req.body.username;
-	
-	if(user == null){
-		// res.redirect('/login');
-		res.send();
+app.use(function (err, req, res, next) {
+	if(err instanceof SessionManager.Error) {
+		if(req.headers.accept === 'application/json') {
+			res.status(401);
+            res.send(new Error('ERROR!'));
+		}
+		else {
+			res.redirect('/login');
+		}
 	}
 	else {
-		db.getUser(user).then((userdoc) => {
-			if(userdoc == null){
-				res.redirect("/login");
-				res.send();
-			}
-			//compute password
-			else if (!isCorrectPassword(req.body.password, userdoc.password)){
-				res.redirect("/login");
-				res.send();
-			}
-			else {
-				sessionManager.createSession(res, user);
-				res.redirect("/");
-				res.send();
-			}
-		})
-	}
+		res.status(500);
+        res.send(new Error('ERROR!'));
+    }
 })
 
+broker.on('connection', function connection(ws,incomingMessage) {
+    
+	if (incomingMessage.headers.cookie == undefined) {
+		ws.close();
+		return;
+	}
+    
+    var cookie = incomingMessage.headers.cookie.split('=')[1];
+    
+	if(sessionManager.getUsername(cookie) == null) {
+		ws.close();
+		return;
+    }
+    
+	ws.on('message', (data) => {
+        
+		var msg = JSON.parse(data);
+        
+        msg.username = sessionManager.getUsername(cookie);
+		msg.text = encodeURI(msg.text);
 
-app.use('/', express.static(clientApp, { extensions: ['html'] }));
+		broker.clients.forEach((client)=>{
+			if(client != ws){
+				client.send(JSON.stringify(msg))
+			}
+		})
 
+		var msgObj = {};
+		msgObj["username"] = sessionManager.getUsername(cookie);
+		msgObj["text"] = msg.text;
+		messages[msg.roomId].push(msgObj);
+        
+        if( messages[msg.roomId].length == messageBlockSize) {
+            var conv = {
+                'room_id' : msg.roomId,
+                'timestamp' : Date.now(),
+                'messages' : messages[msg.roomId]
+            }
+            db.addConversation(conv).then(
+                (resolve) => {
+                    messages[msg.roomId] = [];
+                },
+                (reject)=> {}
+            );
+        }
+        
+	})
+    
+})
 
-app.use('/login', express.static(clientApp+'/login.html', { extensions: ['html'] }));
   
+
+
+
+
+
 function isCorrectPassword(password, saltedHash) {
     let salt = saltedHash.substring(0, 20)
     let base64Hash = saltedHash.substring(20)
@@ -262,24 +265,31 @@ function isCorrectPassword(password, saltedHash) {
     return encryptedPassword === base64Hash
   }
 
-app.use((err, req, res, next) => {
-    // Check if the error is a SessionError instance
-    if (err instanceof SessionManager.Error) {
-        // Check the Accept header for content negotiation
-        const acceptHeader = req.get('Accept');
+//////////////////////
+// A) In the client-side application, locate the lines of code responsible for rendering the message received from the WebSocket. In that code block, sanitize the received message before appending it to the DOM.
+// Think about how you want to "sanitize" a given user input. Do you want to simply invalidate texts containing <script> tag? Or should you be removing the tag but still show the body of the tag? What if you wanted to share code through the chat, and you wanted to show the entire script tag verbatim? We leave this choice up to you.
+// B) While sanitizing a malicious input just before rendering may suppress the attack (at least for now), the application is still vulnerable. Think about what happens in the server - the message goes to the broker, and it gets stored in the database as conversation objects. What would happen if, in the future, you replace your client application? or if your server interacts with a 3rd-party client application?
+// In addition to sanitizing the message in the client, also sanitize a given message in the message handler of the broker client. Ensure the dirty message does not get forwarded to the other clients, and does not get stored in the database.
+// Task 8:
+//   - Attacked successfully - app is still vulnerable to XSS attack 1A (via addMessage)
+//   - Attacked successfully - app is still vulnerable to XSS attack 1B (via addMessage)
+//   - Attacked successfully - app is still vulnerable to XSS attack 2A (via onNewMessage)
+//   - Attacked successfully - app is still vulnerable to XSS attack 2B (via onNewMessage)
+//   - Sanitization policy seems too strong, benign text should be displayed
+//   - Sanitization policy seems too strong, benign text should be displayed
 
-        if (acceptHeader && acceptHeader.includes('application/json')) {
-            // If Accept header specifies application/json, respond with HTTP 401 and error message
-            res.status(401).json({ error: err.message });
-        } else {
-            // Otherwise, redirect to the /login page
-            res.redirect('/login');
-        }
-    } else {
-        // If the error is not a SessionError object, return HTTP 500
-        res.status(500).send('Internal Server Error');
-    }
-});
+
+// function sanitize (inputString) {
+//     var tagsToReplace = {
+//         '<': '&lt;',
+//         '>': '&gt;'
+//     };
+//     return inputString.replace(/[<>]/g, function(symbol) {
+//         return tagsToReplace[symbol] || symbol;
+//     })
+// }
+
+//////////////////////
 
 cpen322.connect('http://3.98.223.41/cpen322/test-a5-server.js');
 cpen322.export(__filename, { app, db, messages, messageBlockSize, sessionManager, isCorrectPassword });
