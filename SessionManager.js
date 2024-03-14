@@ -42,11 +42,15 @@ function SessionManager (){
 
 	this.deleteSession = (request) => {
 		/* To be implemented */
+		delete request.username;
+        delete sessions[request.session];
+        delete request.session;
 	};
 
 	this.middleware = (request, response, next) => {
 		// Try to read the cookie information from the request
         const cookieHeader = request.headers.cookie;
+
 
         if (!cookieHeader) {
             // If the cookie header was not found, short-circuit the middleware
@@ -60,6 +64,7 @@ function SessionManager (){
 
         const token = cookieObject['cpen322-session'];
 
+
         if (!token || !(token in sessions)) {
             // If the token is not found or the session does not exist, short-circuit the middleware
             next(new SessionError('Invalid session token'));
@@ -69,6 +74,7 @@ function SessionManager (){
         // If the session exists, assign the username and session properties to the request object
         request.username = sessions[token].username;
         request.session = token;
+
 
         // Call next with zero arguments to trigger the next middleware
         next();

@@ -100,7 +100,31 @@ var Service = {
 
             xhr.send();
         });
-    }
+    },
+
+    getProfile: function() {
+        return new Promise((resolve, reject) => {
+          let xhr = new XMLHttpRequest();
+          xhr.open("GET", Service.origin + "/profile");
+          xhr.send(null);
+      
+          xhr.onload = function() {
+            if (xhr.status == 200){
+              console.log("now logging response");
+              //console.log();
+              resolve(JSON.parse(xhr.response));
+            }
+            else {
+              reject(new Error("Failed to get last conversation, responded"));
+            }
+          }
+      
+          xhr.onerror = function() {
+            reject(new Error("Failed to get last conversation"));
+          }
+      
+        });
+      }
 }
 
 class Lobby {
@@ -475,6 +499,8 @@ function main() {
     }
     refreshLobby();
     setInterval(refreshLobby, 6000);
+
+    Service.getProfile();
 
 
     cpen322.export(arguments.callee, { lobby, chatView });
