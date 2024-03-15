@@ -27,7 +27,6 @@ function logRequest(req, res, next){
 	next();
 }
 
-
 const host = 'localhost';
 const port = 3000; 
 const clientApp = path.join(__dirname, 'client');
@@ -41,7 +40,6 @@ db.getRooms().then(
     },
     (reject) => {}
 );
-
 
 // express app
 let app = express();
@@ -143,7 +141,6 @@ app.route('/chat').all(sessionManager.middleware)
         );
     })
 
-
 app.get('/profile', sessionManager.middleware, (req, res) => {
 
     res.send({
@@ -151,7 +148,6 @@ app.get('/profile', sessionManager.middleware, (req, res) => {
     })
   })
   
-
 app.route('/app.js').get(sessionManager.middleware);
 
 app.route('/index.html').get(sessionManager.middleware);
@@ -183,7 +179,7 @@ app.use(function (err, req, res, next) {
     }
 })
 
-broker.on('connection', function connection(ws,incomingMessage) {
+broker.on('connection', function connection(ws, incomingMessage) {
     
 	if (incomingMessage.headers.cookie == undefined) {
 		ws.close();
@@ -198,15 +194,14 @@ broker.on('connection', function connection(ws,incomingMessage) {
     }
     
 	ws.on('message', (data) => {
-        
 		var msg = JSON.parse(data);
         
         msg.username = sessionManager.getUsername(cookie);
-		msg.text = encodeURI(msg.text);
+		msg.text = sanitize(msg.text);
 
-		broker.clients.forEach((client)=>{
-			if(client != ws){
-				client.send(JSON.stringify(msg))
+		broker.clients.forEach((client) => {
+			if (client != ws) {
+				client.send(JSON.stringify(msg));
 			}
 		})
 
@@ -215,24 +210,19 @@ broker.on('connection', function connection(ws,incomingMessage) {
 		msgObj["text"] = msg.text;
 		messages[msg.roomId].push(msgObj);
         
-        if( messages[msg.roomId].length == messageBlockSize) {
+        if (messages[msg.roomId].length == messageBlockSize) {
             var conv = {
                 'room_id' : msg.roomId,
                 'timestamp' : Date.now(),
                 'messages' : messages[msg.roomId]
             }
             db.addConversation(conv).then(
-                (resolve) => {
-                    messages[msg.roomId] = [];
-                },
-                (reject)=> {}
+                (resolve) => messages[msg.roomId] = [],
+                (reject) => {}
             );
         }
-        
 	})
-    
 })
-
   
 function isCorrectPassword(password, saltedHash) {
     let salt = saltedHash.substring(0, 20)
@@ -242,7 +232,12 @@ function isCorrectPassword(password, saltedHash) {
     return encryptedPassword === base64Hash
 }
 
-
+function sanitize(string) {
+    let regexp = /on[a-zA-Z]+="|<\/script>|<script/g;
+    return string.replace(regexp, function(match) {
+        return match.startsWith("on") ? "censored" : "&lt;script";
+    });
+}
 
 cpen322.connect('http://3.98.223.41/cpen322/test-a5-server.js');
 cpen322.export(__filename, { app, db, messages, messageBlockSize, sessionManager, isCorrectPassword });

@@ -229,3 +229,7 @@ input[type="file"] {
 .message-list::-webkit-scrollbar-track {
     background-color: transparent;
 }
+
+#app-view + div {
+    color: black;
+}

@@ -2,7 +2,7 @@ const crypto = require('crypto');
 
 class SessionError extends Error {};
 
-function SessionManager (){
+function SessionManager () {
 	// default session length - you might want to
 	// set this to something small during development
 	const CookieMaxAgeMs = 600000;
