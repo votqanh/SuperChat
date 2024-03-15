@@ -33,7 +33,6 @@ const port = 3000;
 const clientApp = path.join(__dirname, 'client');
 
 const broker = new ws.Server({port: 8000});
-// var gr_retval = db.getRooms();
 db.getRooms().then(
     (resolve) => {
         for (let room of resolve) {
@@ -144,23 +143,6 @@ app.route('/chat').all(sessionManager.middleware)
         );
     })
 
-// app.route('/profile').all(sessionManager.middleware)
-//     .get(
-//         function (req, res, next) {
-//             var ret = {};
-//             ret['username'] = req.username;
-//             res.status(200);
-//             res.send(ret);
-//         }
-// );
-// app.get("/profile", sessionManager.middleware, (req, res) =>{
-//     // res.status(200).send({"username": req.username});
-//     var ret = {};
-//             ret['username'] = req.username;
-
-//             res.status(200);
-//             res.send(ret);
-// });
 
 app.get('/profile', sessionManager.middleware, (req, res) => {
 
@@ -252,44 +234,15 @@ broker.on('connection', function connection(ws,incomingMessage) {
 })
 
   
-
-
-
-
-
 function isCorrectPassword(password, saltedHash) {
     let salt = saltedHash.substring(0, 20)
     let base64Hash = saltedHash.substring(20)
     let saltedPassword = password + salt
     let encryptedPassword = crypto.createHash('sha256').update(saltedPassword).digest('base64')
     return encryptedPassword === base64Hash
-  }
-
-//////////////////////
-// A) In the client-side application, locate the lines of code responsible for rendering the message received from the WebSocket. In that code block, sanitize the received message before appending it to the DOM.
-// Think about how you want to "sanitize" a given user input. Do you want to simply invalidate texts containing <script> tag? Or should you be removing the tag but still show the body of the tag? What if you wanted to share code through the chat, and you wanted to show the entire script tag verbatim? We leave this choice up to you.
-// B) While sanitizing a malicious input just before rendering may suppress the attack (at least for now), the application is still vulnerable. Think about what happens in the server - the message goes to the broker, and it gets stored in the database as conversation objects. What would happen if, in the future, you replace your client application? or if your server interacts with a 3rd-party client application?
-// In addition to sanitizing the message in the client, also sanitize a given message in the message handler of the broker client. Ensure the dirty message does not get forwarded to the other clients, and does not get stored in the database.
-// Task 8:
-//   - Attacked successfully - app is still vulnerable to XSS attack 1A (via addMessage)
-//   - Attacked successfully - app is still vulnerable to XSS attack 1B (via addMessage)
-//   - Attacked successfully - app is still vulnerable to XSS attack 2A (via onNewMessage)
-//   - Attacked successfully - app is still vulnerable to XSS attack 2B (via onNewMessage)
-//   - Sanitization policy seems too strong, benign text should be displayed
-//   - Sanitization policy seems too strong, benign text should be displayed
+}
 
 
-// function sanitize (inputString) {
-//     var tagsToReplace = {
-//         '<': '&lt;',
-//         '>': '&gt;'
-//     };
-//     return inputString.replace(/[<>]/g, function(symbol) {
-//         return tagsToReplace[symbol] || symbol;
-//     })
-// }
-
-//////////////////////
 
 cpen322.connect('http://3.98.223.41/cpen322/test-a5-server.js');
 cpen322.export(__filename, { app, db, messages, messageBlockSize, sessionManager, isCorrectPassword });

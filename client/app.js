@@ -323,8 +323,9 @@ class ChatView {
 
     renderMessages(messages) {
         messages.slice().reverse().forEach((message) => {
+            // <div class="message ${message.username === profile.username ? 'my-message' : ''}">
             const messageBox = createDOM(`
-                <div class="message ${message.username === profile.username ? 'my-message' : ''}">
+                <div class="message ${message.username === profile.username ? 'message' : ''}">
                     <span class="message-user">${message.username}</span>
                     <span class="message-text">${sanitize(message.text)}</span>
                 </div>
@@ -338,8 +339,9 @@ class ChatView {
     }
 
     createMessageBox(message) {
+        // <div class="message ${message.username === profile.username ? 'my-message' : ''}">
         const messageBox = createDOM(`
-            <div class="message ${message.username === profile.username ? 'my-message' : ''}">
+            <div class="message ${message.username === profile.username ? 'message' : ''}">
                 <span class="message-user">${message.username}</span>
                 <span class="message-text">${sanitize(message.text)}</span>
             </div>
@@ -350,6 +352,7 @@ class ChatView {
         this.chatElem.scrollTop = this.chatElem.scrollHeight;
     }
 }
+
 
 class ProfileView {
     // create the DOM for the "profile page" 
@@ -506,11 +509,6 @@ function main() {
     refreshLobby();
     setInterval(refreshLobby, 6000);
 
-    // Service.getProfile().then(
-    //     (result) => {
-    //         profile.username = result.username;
-    //     }
-    // );
 
     Service.getProfile().then(
         (result) => {
