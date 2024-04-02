@@ -241,15 +241,67 @@ class ChatView {
 
                 <div class="page-control">
                     <textarea id="message" name="message"></textarea>
-                    <button type="button">Send</button>
+                    <button type="button" id="sendButton">Send</button>
                 </div>
-            </div>`); 
 
+               
+                <input type="file" class="file-upload-input" name="photo" style="display: none;" accept=" .pdf, .doc, .docx, .txt">
+                <div id="dragdropzone" class="mt-3 p-3 border-dashed dragdropzone">
+                    <div class="dropzone-inner">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Drag & Drop an image here or click to upload.
+                    </div>
+                </div>
+                <button type="button" id="summarizeButton">Summarize</button>
+                
+
+            </div>`); 
 
         this.titleElem = this.elem.querySelector("h4");
         this.chatElem = this.elem.querySelector("div.message-list");
         this.inputElem = this.elem.querySelector("textarea");
-        this.buttonElem = this.elem.querySelector("button");
+        this.buttonElem = this.elem.querySelector("#sendButton");
+
+
+        this.summarizeButtonElem = this.elem.querySelector("#summarizeButton");
+        this.summarizeButtonElem.addEventListener('click', () => {
+            // send file to server.
+            this.sendSelectedFile(this.selectedFile);
+        });
+
+        this.fileInputs = this.elem.querySelectorAll('.file-upload-input'); 
+        this.dropzones = this.elem.querySelectorAll('.dragdropzone'); 
+
+        this.fileInputs.forEach((fileInput, index) => { 
+            fileInput.addEventListener('change', (event) => {
+                this.selectedFile = event.target.files[0];
+                this.displayImageInDropzone(this.dropzones[index], this.selectedFile, index); 
+            });
+        });
+
+        this.dropzones.forEach((dropzone, index) => { 
+            dropzone.addEventListener('click', () => {
+                this.fileInputs[index].click(); 
+            });
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                const droppedFile = e.dataTransfer.files[0];
+                this.fileInputs[index].files = e.dataTransfer.files;
+                this.displayImageInDropzone(dropzone, droppedFile, index); // Change this line
+            });
+        });
+
         
         this.room = null;
         this.buttonElem.addEventListener('click', () => this.sendMessage());
@@ -280,7 +332,95 @@ class ChatView {
         });
     }
 
+    
+    // To display the selected PDF file in the dropzone
+    displayImageInDropzone(dropzone, file, index) {
+        // Remove previously displayed files
+        const filesToRemove = Array.from(dropzone.querySelectorAll('.file-preview'));
+        filesToRemove.forEach((fileElement) => {
+            dropzone.removeChild(fileElement);
+        });
 
+        if (file) {
+            const dropzoneInner = dropzone.querySelector('.dropzone-inner');
+            dropzoneInner.style.display = 'none';
+
+            const fileContainer = document.createElement('div');
+            fileContainer.className = 'file-preview';
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            console.log(fileExtension)
+ 
+            if (fileExtension === 'pdf') {
+                // Display PDF files
+                const embedElement = document.createElement('embed');
+                embedElement.src = URL.createObjectURL(file);
+                embedElement.type = 'application/pdf';
+                embedElement.style.width = '100%';
+                embedElement.style.height = '100%';
+                fileContainer.appendChild(embedElement);
+
+            } else {
+                // Handle the other types of file by displaying their names
+                const fileNameElement = document.createElement('div');
+                fileNameElement.textContent = file.name;
+                fileContainer.appendChild(fileNameElement);
+            }
+
+            // Add a function to change the file to another file (By clicking remove)
+            const removeIcon = document.createElement('div');
+            removeIcon.innerHTML = 'Remove';
+            removeIcon.className = 'remove-icon';
+            removeIcon.style.cursor = 'pointer';
+            removeIcon.addEventListener('click', () => {
+                fileInputs[index].value = '';
+                dropzone.removeChild(fileContainer);
+
+                // When the file is removed
+                dropzoneInner.style.display = 'block';
+            });
+
+            // Add remove icon to the dropzone
+            fileContainer.appendChild(removeIcon);
+            dropzone.appendChild(fileContainer);
+        } else {
+            // When no file is selected
+            const dropzoneInner = dropzone.querySelector('.dropzone-inner');
+            dropzoneInner.style.display = 'block';
+        }
+    }
+    
+
+    sendSelectedFile(file) {
+        if (this.room && file) {
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const fileData = event.target.result;
+    
+                // Send file data along with other necessary information via WebSocket
+                this.socket.send(JSON.stringify({
+                    roomId: this.room.id,
+                    username: profile.username,
+                    file: {
+                        name: file.name,
+                        type: file.type,
+                        data: fileData
+                    }
+                }));
+            };
+            reader.onerror = (error) => {
+                console.error('Error reading the file:', error);
+            };
+    
+            // Read the file as a binary string
+            reader.readAsBinaryString(file);
+        } else {
+            console.error("Room is not set or file is missing. Cannot send file.");
+        }
+    }
+
+    
     sendMessage() {
         // check if this.room is set before calling addMessage
         if (this.room) {
@@ -444,6 +584,7 @@ class Room {
 }
 
 function main() {
+    
     let socket = new WebSocket("ws://localhost:8000");
     // let socket = new WebSocket("3.98.223.41:8000");
     socket.addEventListener('message', function(event) {

@@ -195,6 +195,8 @@ broker.on('connection', function connection(ws, incomingMessage) {
     
 	ws.on('message', (data) => {
 		var msg = JSON.parse(data);
+        // To check the sent pdf file. (It can recieve .pdf, .docx, .txt)
+        // console.log('File received:', msg);
         
         msg.username = sessionManager.getUsername(cookie);
 		msg.text = sanitize(msg.text);
@@ -233,10 +235,14 @@ function isCorrectPassword(password, saltedHash) {
 }
 
 function sanitize(string) {
-    let regexp = /on[a-zA-Z]+="|<\/script>|<script/g;
-    return string.replace(regexp, function(match) {
-        return match.startsWith("on") ? "censored" : "&lt;script";
-    });
+    if (typeof string === 'string') {
+        let regexp = /on[a-zA-Z]+="|<\/script>|<script/g;
+        return string.replace(regexp, function(match) {
+            return match.startsWith("on") ? "censored" : "&lt;script";
+        });
+    } else {
+        return '';
+    }
 }
 
 cpen322.connect('http://3.98.223.41/cpen322/test-a5-server.js');
