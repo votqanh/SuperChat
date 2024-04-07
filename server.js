@@ -193,27 +193,29 @@ broker.on('connection', function connection(ws, incomingMessage) {
 		return;
     }
     
-	ws.on('message', (data) => {
+	ws.on('message', async (data) => {
 		var msg = JSON.parse(data);
         // To check the sent pdf file. (It can receive .pdf, .docx, .txt)
         // console.log('File received:', msg.file.data);
 
-        const formData = new FormData();
-        formData.append('file', msg.file.data);
+        // Check if message is a file
+        if ('file' in msg) {
+            const formData = new FormData();
+            formData.append('file', msg.file.data);
 
-        axios.post('http://localhost:3001/process_file', formData)
-            .then((response) => {
-                console.log('Response from server:', response.data.data);
-                msg.text = response.data;
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-
+            await axios.post('http://localhost:3001/process_file', formData)
+                .then((response) => {
+                    msg.text = response.data.data;
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        }
+        
         console.log(msg.text);
 
         msg.username = sessionManager.getUsername(cookie);
-        if (!msg.hasOwnProperty('file')) {
+        if (!('file' in msg)) {
             msg.text = sanitize(msg.text);
         }
 
