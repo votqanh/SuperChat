@@ -135,6 +135,7 @@ body {
 }
 
 button {
+    font-family: 'Roboto-Mono', monospace;
     padding: 10px 20px;
     background-color: #7289da;
     color: #fff;
@@ -160,17 +161,22 @@ button:hover {
 }
 
 .message {
-    background-color: #40444b;
-    padding: 15px;
-    margin: 10px 0 10px 0;
+    background-color: #7689c9;
+    color: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
     border-radius: 5px;
+    float: right;
     clear: both;
-    float: left;
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;
+    overflow-wrap: break-word;
     /* messages for other users stick to the left */
 }
 
 .my-message {
-    background-color: #7689c9;
+    background-color: #6071C5;
     color: #fff;
     padding: 10px;
     margin-bottom: 10px;
@@ -200,7 +206,7 @@ input[type="password"],
 textarea,
 input[type="file"] {
     width: calc(100% - 20px);
-    padding: 10px;
+    padding: 10px 25px 10px 25px;
     border: 1px solid #dddddd00;
     border-radius: 5px;
     margin-bottom: 10px;
@@ -210,7 +216,6 @@ input[type="file"] {
     height: 30px;
     line-height: 30px;
     resize: none;
-    text-indent: 15px;
 }
 
 input[type="file"] {
@@ -271,4 +276,16 @@ input[type="file"] {
 #dragdropzone.active {
     border-color: #3498db;
     background-color: #ecf0f1;
+}
+
+.my-message .message-user {
+    margin-left: auto;
+}
+
+.message-user {
+    font-family: 'Roboto', monospace;
+    font-weight: bold;
+    font-size: 12px;
+    color: #bcc2ed;
+    margin-bottom: 7px;
 }

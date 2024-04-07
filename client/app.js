@@ -465,9 +465,8 @@ class ChatView {
 
     renderMessages(messages) {
         messages.slice().reverse().forEach((message) => {
-            // <div class="message ${message.username === profile.username ? 'my-message' : ''}">
             const messageBox = createDOM(`
-                <div class="message ${message.username === profile.username ? 'message' : ''}">
+                <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                     <span class="message-user">${message.username}</span>
                     <span class="message-text">${sanitize(message.text)}</span>
                 </div>
