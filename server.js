@@ -1,14 +1,14 @@
 const cpen322 = require('./cpen322-tester.js');
 const path = require('path');
-const fs = require('fs');
 const express = require('express');
 const ws = require('ws');
 const Database = require('./Database')
 const SessionManager = require('./SessionManager');
 const crypto = require('crypto');
+const axios = require('axios');
 
-// let mongoUrl = 'mongodb://localhost:27017'; 
-let mongoUrl = 'mongodb://127.0.0.1:27017';
+let mongoUrl = 'mongodb://localhost:27017'; 
+// let mongoUrl = 'mongodb://127.0.0.1:27017';
 let dbName = 'cpen322-messenger';
 let db = new Database(mongoUrl, dbName);
 const sessionManager = new SessionManager();
@@ -195,11 +195,27 @@ broker.on('connection', function connection(ws, incomingMessage) {
     
 	ws.on('message', (data) => {
 		var msg = JSON.parse(data);
-        // To check the sent pdf file. (It can recieve .pdf, .docx, .txt)
-        // console.log('File received:', msg);
-        
+        // To check the sent pdf file. (It can receive .pdf, .docx, .txt)
+        // console.log('File received:', msg.file.data);
+
+        const formData = new FormData();
+        formData.append('file', msg.file.data);
+
+        axios.post('http://localhost:3001/process_file', formData)
+            .then((response) => {
+                console.log('Response from server:', response.data.data);
+                msg.text = response.data;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+        console.log(msg.text);
+
         msg.username = sessionManager.getUsername(cookie);
-		msg.text = sanitize(msg.text);
+        if (!msg.hasOwnProperty('file')) {
+            msg.text = sanitize(msg.text);
+        }
 
 		broker.clients.forEach((client) => {
 			if (client != ws) {

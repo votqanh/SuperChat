@@ -395,8 +395,10 @@ class ChatView {
         if (this.room && file) {
 
             const reader = new FileReader();
-            reader.onload = (event) => {
-                const fileData = event.target.result;
+            reader.onload = () => {
+                const fileData = reader.result.split(',')[1];
+
+                console.log(fileData);
     
                 // Send file data along with other necessary information via WebSocket
                 this.socket.send(JSON.stringify({
@@ -413,8 +415,8 @@ class ChatView {
                 console.error('Error reading the file:', error);
             };
     
-            // Read the file as a binary string
-            reader.readAsBinaryString(file);
+            // read in Base64 encoding
+            reader.readAsDataURL(file);
         } else {
             console.error("Room is not set or file is missing. Cannot send file.");
         }
