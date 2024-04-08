@@ -22,5 +22,6 @@ flask (v3.0.2)
 pdfminer.six (v20231228)  
 cohere (v5.2.2)  
 youtube_transcript_api (v0.6.2)  
+python-docx (v1.1.0)
 
 Cohere API Key: `urUHBanFf5qq0F39mHGIPdWV9tvDqe3198WQ0Zq3`
