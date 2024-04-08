@@ -448,33 +448,23 @@ class ChatView {
     
     // upload the file to to the chat room. The other user can click summarize button. 
     uploadFile(file) {
-        if (this.room && file) {
 
+        if (this.room && file) {
             this.file = file;
 
             this.room.addMessage(profile.username, `Uploaded file: ${this.file.name}`);
+            this.socket.send(JSON.stringify({
+                // send file
+                roomId: this.room.id,
+                username: profile.username,
+                text: this.file.name
+            }));
 
-            // send this.file to server
-            
-            // const reader = new FileReader();
-            // reader.onload = () => {
-            //     const fileData = reader.result.split(',')[1];
 
-            //     // console.log(fileData);
-            //     // should print msg.text, not file data
-            //     this.room.addMessage(profile.username, this.file.name);
-    
-
-            // };
-            // reader.onerror = (error) => {
-            //     console.error('Error reading the file:', error);
-            // };
-    
-            // // read in Base64 encoding
-            // reader.readAsDataURL(file);
         } else {
             console.error("Room is not set or file is missing. Cannot send file.");
         }
+
     }
     
     sendMessage() {
@@ -507,15 +497,15 @@ class ChatView {
             this.createMessageBox(message);
         }
 
-        // this.room.onFetchConversation = (conversation) => {
-        //     const hb = this.chatElem.scrollHeight;
+        this.room.onFetchConversation = (conversation) => {
+            const hb = this.chatElem.scrollHeight;
 
-        //     this.renderMessages(conversation.messages);
+            this.renderMessages(conversation.messages);
 
-        //     const ha = this.chatElem.scrollHeight;
+            const ha = this.chatElem.scrollHeight;
 
-        //     this.chatElem.scrollTop = ha - hb;
-        // };
+            this.chatElem.scrollTop = ha - hb;
+        };
 
     }
 
