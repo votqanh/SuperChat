@@ -4,6 +4,7 @@ Steps to run our AI feature:
 2. Create a virtual environment with Python interpreter v3.12.2
 3. Within the virtual environment, install Python dependencies using `pip install requirements.txt`
 4. Start a mongodb service and load the db script from A4
+5. Start the Node server and the Python server (in the virtual environment)
 6. Open `localhost:3000` and login with username `alice`, password `secret`
 7. Select any chatroom
 8. Try sending a youtube link, you should get a summary below the message bubble
