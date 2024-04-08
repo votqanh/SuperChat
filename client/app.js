@@ -245,15 +245,19 @@ class ChatView {
                 </div>
 
                
-                <input type="file" class="file-upload-input" name="photo" style="display: none;" accept=" .pdf, .doc, .docx, .txt">
-                <div id="dragdropzone" class="mt-3 p-3 border-dashed dragdropzone">
-                    <div class="dropzone-inner">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        Drag & Drop an image here or click to upload.
+                <div class="dropbox">
+                    <input type="file" class="file-upload-input" name="photo" style="display: none;" accept=" .pdf, .doc, .docx, .txt">
+                    <div id="dragdropzone" class="mt-3 p-3 border-dashed dragdropzone">
+                        <div class="dropzone-inner">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            Drag & drop a PDF/DOCX/TXT file <br> or click to upload.
+                        </div>
+                    </div>
+                    <div class="dropbox-buttons">
+                        <button type="button" id="sendFileButton">Upload File</button>
+                        <button type="button" id="summarizeFileButton">Summarize File</button>
                     </div>
                 </div>
-                <button type="button" id="sendFileButton">Upload File</button>
-                <button type="button" id="summarizeFileButton">Summarize File</button>
                 
 
             </div>`); 
@@ -532,7 +536,6 @@ class ChatView {
     }
 
     createMessageBox(message) {
-        console.log("YOO?");
         const messageBox = createDOM(`
             <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                 <span class="message-user">${message.username}</span>

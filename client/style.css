@@ -155,7 +155,7 @@ button:hover {
 .message-list {
     margin-top: 20px;
     overflow-y: scroll;
-    height: 60vh;
+    height: 40vh;
     font-size: 14px;
     padding: 15px;
 }
@@ -239,7 +239,7 @@ input[type="file"] {
     color: black;
 }
 
-/* pdf doc upload */
+/* file upload */
 
 #dragdropzone {
     border: 3px dashed #5f17ef;
@@ -251,9 +251,8 @@ input[type="file"] {
     cursor: pointer;
     position: relative;
     border-radius: 5px;
-    width:50%;
     height: 10%;
-    margin:10px 20px;
+    margin:10px 0;
 }
 
 #dragdropzone .dropzone-inner {
@@ -288,4 +287,17 @@ input[type="file"] {
     font-size: 12px;
     color: #bcc2ed;
     margin-bottom: 7px;
+}
+
+.dropbox {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 50%;
+}
+
+.dropbox-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 30px;
 }
