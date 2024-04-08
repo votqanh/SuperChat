@@ -194,11 +194,11 @@ broker.on('connection', function connection(ws, incomingMessage) {
     }
     
 	ws.on('message', async (data) => {
+        var hasSummary = false;
 		var msg = JSON.parse(data);
         // To check the sent pdf file. (It can receive .pdf, .docx, .txt)
         // console.log('File received:', msg.file.data);
-        console.log('File received:', msg);
-
+        // console.log('File received:', msg);
 
         // Check if message is a file
         if ('file' in msg) {
@@ -206,13 +206,14 @@ broker.on('connection', function connection(ws, incomingMessage) {
             formData.append('file', msg.file.data);
 
             if (msg.file.type == 'application/pdf') {
-                await axios.post('http://127.0.0.1:3001/process_file', formData)
-                // await axios.post('http://localhost:3001/process_pdf', formData)
+                // await axios.post('http://127.0.0.1:3001/process_pdf', formData)
+                await axios.post('http://localhost:3001/process_pdf', formData)
                     .then((response) => {
                         msg.text = response.data.data;
                     })
                     .catch((error) => {
                         console.error('Error:', error);
+                        return;
                     });
             } else {
                 await axios.post('http://localhost:3001/process_file', formData)
@@ -221,8 +222,11 @@ broker.on('connection', function connection(ws, incomingMessage) {
                     })
                     .catch((error) => {
                         console.error('Error:', error);
+                        return;
                     });
             }
+
+            hasSummary = true;
         } else {
             if (!('file' in msg)) {
                 msg.text = sanitize(msg.text);
@@ -241,13 +245,15 @@ broker.on('connection', function connection(ws, incomingMessage) {
                 })
                 .catch(function (error) {
                     console.error(error);
+                    return;
                 });
+                
+                hasSummary = true;
             }
         }
         
         // msg.text = summary
         console.log("MSG text: \n" + JSON.stringify(msg.text));
-
 
         msg.username = sessionManager.getUsername(cookie);
 
@@ -273,6 +279,10 @@ broker.on('connection', function connection(ws, incomingMessage) {
                 (reject) => {}
             );
         }
+
+        msg.username = msgObj["username"];
+
+        if (hasSummary) ws.send(JSON.stringify({ message: msg }));
 	})
 })
   

@@ -263,7 +263,6 @@ class ChatView {
         this.inputElem = this.elem.querySelector("textarea");
         this.buttonElem = this.elem.querySelector("#sendButton");
 
-
         this.sendFileButtonElem = this.elem.querySelector("#sendFileButton");
         this.sendFileButtonElem.addEventListener('click', () => {
             // upload file.
@@ -309,7 +308,6 @@ class ChatView {
             });
         });
 
-        
         this.room = null;
         this.file = null;
         this.buttonElem.addEventListener('click', () => this.sendMessage());
@@ -407,7 +405,6 @@ class ChatView {
             reader.onload = () => {
                 const fileData = reader.result.split(',')[1];
 
- 
                 // displaying takes some time. 
                 // this.room.addMessage(profile.username, "Summarize " + file.name);
     
@@ -422,6 +419,15 @@ class ChatView {
                     }
                 }));
 
+                this.socket.onmessage = (event) => {
+                    const socketResponse = JSON.parse(event.data);
+                
+                    const summary = socketResponse.message;
+                
+                    // console.log('Summary:', summary);
+                    
+                    this.createMessageBox(summary);
+                };
             };
             reader.onerror = (error) => {
                 console.error('Error reading the file:', error);
@@ -429,8 +435,6 @@ class ChatView {
     
             // read in Base64 encoding
             reader.readAsDataURL(file);
-
-
         } else {
             console.error("Room is not set or file is missing. Cannot get summary.");
         }
@@ -440,12 +444,11 @@ class ChatView {
     
     // upload the file to to the chat room. The other user can click summarize button. 
     uploadFile(file) {
-
         if (this.room && file) {
 
             this.file = file;
 
-            this.room.addMessage(profile.username, `Uploading file: ${this.file.name}`);
+            this.room.addMessage(profile.username, `Uploaded file: ${this.file.name}`);
 
             // send this.file to server
             
@@ -469,21 +472,21 @@ class ChatView {
             console.error("Room is not set or file is missing. Cannot send file.");
         }
     }
-
     
     sendMessage() {
         // check if this.room is set before calling addMessage
         if (this.room) {
             this.room.addMessage(profile.username, this.inputElem.value);
             this.socket.send(JSON.stringify({
-                roomId : this.room.id,
-                username : profile.username,
-                text : this.inputElem.value
+                roomId: this.room.id,
+                username: profile.username,
+                text: this.inputElem.value
             }));
+
+            this.inputElem.value = '';
         } else {
             console.error("Room is not set. Cannot send message.");
         }
-        
     }
 
     setRoom(room) {
@@ -517,7 +520,7 @@ class ChatView {
             const messageBox = createDOM(`
                 <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                     <span class="message-user">${message.username}</span>
-                    <span class="message-text">${sanitize(message.text)}</span>
+                    <span class="message-text">${sanitize(message.text).replace(/\n/g, '<br>')}</span>
                 </div>
             `);
 
@@ -529,10 +532,11 @@ class ChatView {
     }
 
     createMessageBox(message) {
+        console.log("YOO?");
         const messageBox = createDOM(`
             <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                 <span class="message-user">${message.username}</span>
-                <span class="message-text">${sanitize(message.text)}</span>
+                <span class="message-text">${sanitize(message.text).replace(/\n/g, '<br>')}</span>
             </div>
         `);
 
