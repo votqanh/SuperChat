@@ -203,21 +203,48 @@ broker.on('connection', function connection(ws, incomingMessage) {
             const formData = new FormData();
             formData.append('file', msg.file.data);
 
-            await axios.post('http://localhost:3001/process_file', formData)
-                .then((response) => {
-                    msg.text = response.data.data;
+            if (msg.file.type == 'application/pdf') {
+                await axios.post('http://localhost:3001/process_pdf', formData)
+                    .then((response) => {
+                        msg.text = response.data.data;
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                await axios.post('http://localhost:3001/process_file', formData)
+                    .then((response) => {
+                        msg.text = response.data.data;
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            }
+        } else {
+            if (!('file' in msg)) {
+                msg.text = sanitize(msg.text);
+            }
+
+            videoId = extractYouTubeVideoId(msg.text);
+            if (videoId) {
+                // Send video ID to Python server
+                await axios.get('http://localhost:3001/process_video', {
+                    params: {
+                        videoId: videoId
+                    }
                 })
-                .catch((error) => {
-                    console.error('Error:', error);
+                .then(function (response) {
+                    msg.text += "\n" + response.data.data
+                })
+                .catch(function (error) {
+                    console.error(error);
                 });
+            }
         }
         
         console.log(msg.text);
 
         msg.username = sessionManager.getUsername(cookie);
-        if (!('file' in msg)) {
-            msg.text = sanitize(msg.text);
-        }
 
 		broker.clients.forEach((client) => {
 			if (client != ws) {
@@ -260,6 +287,21 @@ function sanitize(string) {
         });
     } else {
         return '';
+    }
+}
+
+function extractYouTubeVideoId(string) {
+    // Regular expression to match YouTube URLs
+    var youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    
+    // Check if the URL matches the YouTube URL pattern
+    var match = string.match(youtubeRegex);
+    
+    // If there is a match, extract and return the video ID
+    if (match && match[1]) {
+        return match[1];
+    } else {
+        return null; // Return null if no match found
     }
 }
 
