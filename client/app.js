@@ -400,17 +400,12 @@ class ChatView {
         }
     }
 
-    // send the file to server. can see the summary.  recieve the summary from the backend.
+    // Send the file to server and render summary
     sendSelectedFile(file){
         if (this.room && this.file) {
-            // get summary from server.
-            
             const reader = new FileReader();
             reader.onload = () => {
                 const fileData = reader.result.split(',')[1];
-
-                // displaying takes some time. 
-                // this.room.addMessage(profile.username, "Summarize " + file.name);
     
                 // Send file data along with other necessary information via WebSocket
                 this.socket.send(JSON.stringify({
@@ -423,6 +418,7 @@ class ChatView {
                     }
                 }));
 
+                // Render summary when server sends it back
                 this.socket.onmessage = (event) => {
                     const socketResponse = JSON.parse(event.data);
                 
@@ -437,13 +433,11 @@ class ChatView {
                 console.error('Error reading the file:', error);
             };
     
-            // read in Base64 encoding
+            // Read file in Base64 encoding
             reader.readAsDataURL(file);
         } else {
             console.error("Room is not set or file is missing. Cannot get summary.");
         }
-
-
     }
     
     // upload the file to to the chat room. The other user can click summarize button. 
@@ -641,16 +635,7 @@ class Room {
 }
 
 function main() {
-    
     let socket = new WebSocket("ws://localhost:8000");
-    // let socket = new WebSocket("3.98.223.41:8000");
-    socket.addEventListener('message', function(event) {
-        var incomingMess = JSON.parse(event.data);
-        // console.log("TEST: " + incomingMess);
-        var selectedRoom = lobby.getRoom(incomingMess.roomId);
-        selectedRoom.addMessage(incomingMess.username, incomingMess.text);
-    });
-
     
     let lobby = new Lobby();
     let lobbyView = new LobbyView(lobby);
@@ -717,20 +702,6 @@ function main() {
         }
     )
 
-
-    cpen322.export(arguments.callee, { lobby, chatView });
-
 }
 
 window.addEventListener("load", main);
-
-var profile = {
-    username: "Baymax"
-};
-
-cpen322.setDefault(testRoomId, 'room-1')
-cpen322.setDefault(cookieName, 'cpen322-session')
-cpen322.setDefault(testUser1, { username: 'alice', password: 'secret', saltedHash: '1htYvJoddV8mLxq3h7C26/RH2NPMeTDxHIxWn49M/G0wxqh/7Y3cM+kB1Wdjr4I=' })
-cpen322.setDefault(testUser2, { username: 'bob', password: 'password', saltedHash: 'MIYB5u3dFYipaBtCYd9fyhhanQkuW4RkoRTUDLYtwd/IjQvYBgMHL+eoZi3Rzhw=' })
-cpen322.setDefault(image, 'assets/everyone-icon.png')
-cpen322.setDefault(webSocketServer, 'ws://localhost:8000')

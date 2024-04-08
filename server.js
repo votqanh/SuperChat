@@ -1,4 +1,3 @@
-const cpen322 = require('./cpen322-tester.js');
 const path = require('path');
 const express = require('express');
 const ws = require('ws');
@@ -180,7 +179,6 @@ app.use(function (err, req, res, next) {
 })
 
 broker.on('connection', function connection(ws, incomingMessage) {
-    
 	if (incomingMessage.headers.cookie == undefined) {
 		ws.close();
 		return;
@@ -229,9 +227,7 @@ broker.on('connection', function connection(ws, incomingMessage) {
 
             hasSummary = true;
         } else {
-            if (!('file' in msg)) {
-                msg.text = sanitize(msg.text);
-            }
+            msg.text = sanitize(msg.text);
 
             videoId = extractYouTubeVideoId(msg.text);
             if (videoId) {
@@ -242,7 +238,7 @@ broker.on('connection', function connection(ws, incomingMessage) {
                     }
                 })
                 .then(function (response) {
-                    msg.text += "\n" + response.data.data
+                    msg.text = `https://www.youtube.com/watch?v=${videoId}\n${response.data.data}`;
                 })
                 .catch(function (error) {
                     console.error(error);
@@ -283,6 +279,8 @@ broker.on('connection', function connection(ws, incomingMessage) {
 
         msg.username = msgObj["username"];
 
+        console.log(hasSummary);
+
         if (hasSummary) ws.send(JSON.stringify({ message: msg }));
 	})
 })
@@ -320,6 +318,3 @@ function extractYouTubeVideoId(string) {
         return null; // Return null if no match found
     }
 }
-
-cpen322.connect('http://3.98.223.41/cpen322/test-a5-server.js');
-cpen322.export(__filename, { app, db, messages, messageBlockSize, sessionManager, isCorrectPassword });
