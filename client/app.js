@@ -475,14 +475,11 @@ class ChatView {
         // check if this.room is set before calling addMessage
         if (this.room) {
             this.room.addMessage(profile.username, this.inputElem.value);
-            
             this.socket.send(JSON.stringify({
                 roomId : this.room.id,
                 username : profile.username,
                 text : this.inputElem.value
             }));
-            this.inputElem.value = '';
-
         } else {
             console.error("Room is not set. Cannot send message.");
         }
@@ -517,9 +514,8 @@ class ChatView {
 
     renderMessages(messages) {
         messages.slice().reverse().forEach((message) => {
-            // <div class="message ${message.username === profile.username ? 'my-message' : ''}">
             const messageBox = createDOM(`
-                <div class="message ${message.username === profile.username ? 'message' : ''}">
+                <div class="message ${message.username === profile.username ? 'my-message' : ''}">
                     <span class="message-user">${message.username}</span>
                     <span class="message-text">${sanitize(message.text)}</span>
                 </div>
