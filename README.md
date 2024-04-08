@@ -2,7 +2,7 @@ Steps to run our AI feature:
 
 1. Install NodeJS dependencies using `npm install`
 2. Create a virtual environment with Python interpreter v3.12.2
-3. Within the virtual environment, install Python dependencies using `pip install requirements.txt`
+3. Within the virtual environment, install Python dependencies using `pip install -r requirements.txt`
 4. Start a mongodb service and load the db script from A4
 5. Start the Node server and the Python server (in the virtual environment)
 6. Open `localhost:3000` and login with username `alice`, password `secret`
