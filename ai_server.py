@@ -28,8 +28,6 @@ def process_file():
     # Convert bytes to string
     text = decoded_bytes.decode('utf-8')
 
-    print(text)
-
     response = {'data': get_summary(text)}
     
     return jsonify(response)
