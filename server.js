@@ -216,6 +216,7 @@ broker.on('connection', function connection(ws, incomingMessage) {
                         return;
                     });
             } else {
+                // await axios.post('http://127.0.0.1:3001/process_pdf', formData)
                 await axios.post('http://localhost:3001/process_file', formData)
                     .then((response) => {
                         msg.text = response.data.data;

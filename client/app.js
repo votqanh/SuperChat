@@ -361,21 +361,21 @@ class ChatView {
             const fileExtension = file.name.split('.').pop().toLowerCase();
             console.log(fileExtension)
  
-            // if (fileExtension === 'pdf') {
-            //     // Display PDF files
-            //     const embedElement = document.createElement('embed');
-            //     embedElement.src = URL.createObjectURL(file);
-            //     embedElement.type = 'application/pdf';
-            //     embedElement.style.width = '100%';
-            //     embedElement.style.height = '100%';
-            //     fileContainer.appendChild(embedElement);
+            if (fileExtension === 'pdf') {
+                // Display PDF files
+                const embedElement = document.createElement('embed');
+                embedElement.src = URL.createObjectURL(file);
+                embedElement.type = 'application/pdf';
+                embedElement.style.width = '100%';
+                embedElement.style.height = '100%';
+                fileContainer.appendChild(embedElement);
 
-            // } else {
+            } else {
                 // Handle the other types of file by displaying their names
             const fileNameElement = document.createElement('div');
             fileNameElement.textContent = file.name;
             fileContainer.appendChild(fileNameElement);
-            // }
+            }
 
             // Add a function to change the file to another file (By clicking remove)
             const removeIcon = document.createElement('div');
