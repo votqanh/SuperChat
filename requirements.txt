@@ -1,3 +1,4 @@
 flask
 pdfminer.six
 cohere
+python-docx

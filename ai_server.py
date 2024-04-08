@@ -5,7 +5,8 @@ import base64
 from io import BytesIO
 from pdfminer.high_level import extract_text
 import cohere
-from youtube_transcript_api import YouTubeTranscriptApi, CouldNotRetrieveTranscript
+from youtube_transcript_api import YouTubeTranscriptApi
+from docx import Document
 
 app = Flask(__name__)
 
@@ -25,8 +26,22 @@ def process_file():
 
     # Decode Base64 content
     decoded_bytes = base64.b64decode(text)
+    
     # Convert bytes to string
-    text = decoded_bytes.decode('utf-8')
+    try:
+        text = decoded_bytes.decode('utf-8')
+    except:
+        # Create a file-like object from the decoded data
+        docx_file_like = BytesIO(decoded_bytes)
+
+        doc = Document(docx_file_like)
+
+        # Initialize an empty string to hold the text content
+        text = ""
+        
+        # Iterate through each paragraph in the document and concatenate the text
+        for paragraph in doc.paragraphs:
+            text += paragraph.text + "\n"
 
     response = {'data': get_summary(text)}
     
