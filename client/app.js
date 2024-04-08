@@ -252,7 +252,8 @@ class ChatView {
                         Drag & Drop an image here or click to upload.
                     </div>
                 </div>
-                <button type="button" id="summarizeButton">Summarize</button>
+                <button type="button" id="sendFileButton">Upload File</button>
+                <button type="button" id="summarizeFileButton">Summarize File</button>
                 
 
             </div>`); 
@@ -263,8 +264,14 @@ class ChatView {
         this.buttonElem = this.elem.querySelector("#sendButton");
 
 
-        this.summarizeButtonElem = this.elem.querySelector("#summarizeButton");
-        this.summarizeButtonElem.addEventListener('click', () => {
+        this.sendFileButtonElem = this.elem.querySelector("#sendFileButton");
+        this.sendFileButtonElem.addEventListener('click', () => {
+            // upload file.
+            this.uploadFile(this.selectedFile);
+        });
+
+        this.summarizeFileButtonElem = this.elem.querySelector("#summarizeFileButton");
+        this.summarizeFileButtonElem.addEventListener('click', () => {
             // send file to server.
             this.sendSelectedFile(this.selectedFile);
         });
@@ -304,6 +311,7 @@ class ChatView {
 
         
         this.room = null;
+        this.file = null;
         this.buttonElem.addEventListener('click', () => this.sendMessage());
         this.inputElem.addEventListener('keydown', (event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -351,21 +359,21 @@ class ChatView {
             const fileExtension = file.name.split('.').pop().toLowerCase();
             console.log(fileExtension)
  
-            if (fileExtension === 'pdf') {
-                // Display PDF files
-                const embedElement = document.createElement('embed');
-                embedElement.src = URL.createObjectURL(file);
-                embedElement.type = 'application/pdf';
-                embedElement.style.width = '100%';
-                embedElement.style.height = '100%';
-                fileContainer.appendChild(embedElement);
+            // if (fileExtension === 'pdf') {
+            //     // Display PDF files
+            //     const embedElement = document.createElement('embed');
+            //     embedElement.src = URL.createObjectURL(file);
+            //     embedElement.type = 'application/pdf';
+            //     embedElement.style.width = '100%';
+            //     embedElement.style.height = '100%';
+            //     fileContainer.appendChild(embedElement);
 
-            } else {
+            // } else {
                 // Handle the other types of file by displaying their names
-                const fileNameElement = document.createElement('div');
-                fileNameElement.textContent = file.name;
-                fileContainer.appendChild(fileNameElement);
-            }
+            const fileNameElement = document.createElement('div');
+            fileNameElement.textContent = file.name;
+            fileContainer.appendChild(fileNameElement);
+            // }
 
             // Add a function to change the file to another file (By clicking remove)
             const removeIcon = document.createElement('div');
@@ -389,16 +397,19 @@ class ChatView {
             dropzoneInner.style.display = 'block';
         }
     }
-    
 
-    sendSelectedFile(file) {
-        if (this.room && file) {
-
+    // send the file to server. can see the summary.  recieve the summary from the backend.
+    sendSelectedFile(file){
+        if (this.room && this.file) {
+            // get summary from server.
+            
             const reader = new FileReader();
             reader.onload = () => {
                 const fileData = reader.result.split(',')[1];
 
-                console.log(fileData);
+ 
+                // displaying takes some time. 
+                // this.room.addMessage(profile.username, "Summarize " + file.name);
     
                 // Send file data along with other necessary information via WebSocket
                 this.socket.send(JSON.stringify({
@@ -410,6 +421,7 @@ class ChatView {
                         data: fileData
                     }
                 }));
+
             };
             reader.onerror = (error) => {
                 console.error('Error reading the file:', error);
@@ -417,6 +429,42 @@ class ChatView {
     
             // read in Base64 encoding
             reader.readAsDataURL(file);
+
+
+        } else {
+            console.error("Room is not set or file is missing. Cannot get summary.");
+        }
+
+
+    }
+    
+    // upload the file to to the chat room. The other user can click summarize button. 
+    uploadFile(file) {
+
+        if (this.room && file) {
+
+            this.file = file;
+
+            this.room.addMessage(profile.username, `Uploading file: ${this.file.name}`);
+
+            // send this.file to server
+            
+            // const reader = new FileReader();
+            // reader.onload = () => {
+            //     const fileData = reader.result.split(',')[1];
+
+            //     // console.log(fileData);
+            //     // should print msg.text, not file data
+            //     this.room.addMessage(profile.username, this.file.name);
+    
+
+            // };
+            // reader.onerror = (error) => {
+            //     console.error('Error reading the file:', error);
+            // };
+    
+            // // read in Base64 encoding
+            // reader.readAsDataURL(file);
         } else {
             console.error("Room is not set or file is missing. Cannot send file.");
         }
@@ -427,15 +475,18 @@ class ChatView {
         // check if this.room is set before calling addMessage
         if (this.room) {
             this.room.addMessage(profile.username, this.inputElem.value);
-            this.inputElem.value = '';
+            
             this.socket.send(JSON.stringify({
                 roomId : this.room.id,
                 username : profile.username,
                 text : this.inputElem.value
             }));
+            this.inputElem.value = '';
+
         } else {
             console.error("Room is not set. Cannot send message.");
         }
+        
     }
 
     setRoom(room) {
@@ -452,15 +503,16 @@ class ChatView {
             this.createMessageBox(message);
         }
 
-        this.room.onFetchConversation = (conversation) => {
-            const hb = this.chatElem.scrollHeight;
+        // this.room.onFetchConversation = (conversation) => {
+        //     const hb = this.chatElem.scrollHeight;
 
-            this.renderMessages(conversation.messages);
+        //     this.renderMessages(conversation.messages);
 
-            const ha = this.chatElem.scrollHeight;
+        //     const ha = this.chatElem.scrollHeight;
 
-            this.chatElem.scrollTop = ha - hb;
-        };
+        //     this.chatElem.scrollTop = ha - hb;
+        // };
+
     }
 
     renderMessages(messages) {
@@ -591,6 +643,7 @@ function main() {
     // let socket = new WebSocket("3.98.223.41:8000");
     socket.addEventListener('message', function(event) {
         var incomingMess = JSON.parse(event.data);
+        // console.log("TEST: " + incomingMess);
         var selectedRoom = lobby.getRoom(incomingMess.roomId);
         selectedRoom.addMessage(incomingMess.username, incomingMess.text);
     });

@@ -7,8 +7,8 @@ const SessionManager = require('./SessionManager');
 const crypto = require('crypto');
 const axios = require('axios');
 
-let mongoUrl = 'mongodb://localhost:27017'; 
-// let mongoUrl = 'mongodb://127.0.0.1:27017';
+// let mongoUrl = 'mongodb://localhost:27017'; 
+let mongoUrl = 'mongodb://127.0.0.1:27017';
 let dbName = 'cpen322-messenger';
 let db = new Database(mongoUrl, dbName);
 const sessionManager = new SessionManager();
@@ -197,13 +197,16 @@ broker.on('connection', function connection(ws, incomingMessage) {
 		var msg = JSON.parse(data);
         // To check the sent pdf file. (It can receive .pdf, .docx, .txt)
         // console.log('File received:', msg.file.data);
+        console.log('File received:', msg);
+
 
         // Check if message is a file
         if ('file' in msg) {
             const formData = new FormData();
             formData.append('file', msg.file.data);
 
-            await axios.post('http://localhost:3001/process_file', formData)
+            // await axios.post('http://localhost:3001/process_file', formData)
+            await axios.post('http://127.0.0.1:3001/process_file', formData)
                 .then((response) => {
                     msg.text = response.data.data;
                 })
@@ -212,7 +215,9 @@ broker.on('connection', function connection(ws, incomingMessage) {
                 });
         }
         
-        console.log(msg.text);
+        // msg.text = summary
+        console.log("MSG text: \n" + JSON.stringify(msg.text));
+
 
         msg.username = sessionManager.getUsername(cookie);
         if (!('file' in msg)) {
@@ -229,7 +234,7 @@ broker.on('connection', function connection(ws, incomingMessage) {
 		msgObj["username"] = sessionManager.getUsername(cookie);
 		msgObj["text"] = msg.text;
 		messages[msg.roomId].push(msgObj);
-        
+
         if (messages[msg.roomId].length == messageBlockSize) {
             var conv = {
                 'room_id' : msg.roomId,
