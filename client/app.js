@@ -403,6 +403,8 @@ class ChatView {
     // Send the file to server and render summary
     sendSelectedFile(file){
         if (this.room && this.file) {
+            // this.file = file;
+
             const reader = new FileReader();
             reader.onload = () => {
                 const fileData = reader.result.split(',')[1];
@@ -440,26 +442,45 @@ class ChatView {
         }
     }
     
-    // upload the file to to the chat room. The other user can click summarize button. 
-    uploadFile(file) {
 
+    uploadFile(file) {
         if (this.room && file) {
             this.file = file;
-
-            this.room.addMessage(profile.username, `Uploaded file: ${this.file.name}`);
+            const fileName = this.file.name;
+    
+            let messageContent = `Uploaded file: ${fileName}`;
+            messageContent += ` <a href="#" id="downloadLink">Download</a>`;
+        
+            this.room.addMessage(profile.username, messageContent);
+        
+            // Send file data to the server
             this.socket.send(JSON.stringify({
-                // send file
                 roomId: this.room.id,
                 username: profile.username,
                 text: this.file.name
             }));
-
-
+    
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.addEventListener('click', () => this.downloadFile(fileName, file));
+    
         } else {
             console.error("Room is not set or file is missing. Cannot send file.");
         }
-
     }
+    
+    downloadFile(filename, file) {
+        const blob = new Blob([file], { type: file.type });
+        const url = URL.createObjectURL(blob);
+    
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+    
+    }
+
     
     sendMessage() {
         // check if this.room is set before calling addMessage
