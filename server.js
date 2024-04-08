@@ -195,7 +195,6 @@ broker.on('connection', function connection(ws, incomingMessage) {
         var hasSummary = false;
 		var msg = JSON.parse(data);
         // To check the sent pdf file. (It can receive .pdf, .docx, .txt)
-        // console.log('File received:', msg.file.data);
         // console.log('File received:', msg);
 
         // Check if message is a file
@@ -204,8 +203,8 @@ broker.on('connection', function connection(ws, incomingMessage) {
             formData.append('file', msg.file.data);
 
             if (msg.file.type == 'application/pdf') {
-                // await axios.post('http://127.0.0.1:3001/process_pdf', formData)
-                await axios.post('http://localhost:3001/process_pdf', formData)
+                await axios.post('http://127.0.0.1:3001/process_pdf', formData)
+                // await axios.post('http://localhost:3001/process_pdf', formData)
                     .then((response) => {
                         msg.text = response.data.data;
                     })
@@ -214,8 +213,8 @@ broker.on('connection', function connection(ws, incomingMessage) {
                         return;
                     });
             } else {
-                // await axios.post('http://127.0.0.1:3001/process_pdf', formData)
-                await axios.post('http://localhost:3001/process_file', formData)
+                await axios.post('http://127.0.0.1:3001/process_pdf', formData)
+                // await axios.post('http://localhost:3001/process_file', formData)
                     .then((response) => {
                         msg.text = response.data.data;
                     })
@@ -232,7 +231,8 @@ broker.on('connection', function connection(ws, incomingMessage) {
             videoId = extractYouTubeVideoId(msg.text);
             if (videoId) {
                 // Send video ID to Python server
-                await axios.get('http://localhost:3001/process_video', {
+                await axios.get('http://127.0.0.1:3001/process_video', {
+                // await axios.get('http://localhost:3001/process_video', {
                     params: {
                         videoId: videoId
                     }
@@ -257,6 +257,7 @@ broker.on('connection', function connection(ws, incomingMessage) {
 		broker.clients.forEach((client) => {
 			if (client != ws) {
 				client.send(JSON.stringify(msg));
+
 			}
 		})
 
