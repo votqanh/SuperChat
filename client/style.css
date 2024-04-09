@@ -161,12 +161,12 @@ button:hover {
 }
 
 .message {
-    background-color: #7689c9;
+    background-color: #6f7589;
     color: #fff;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
-    float: right;
+    float: left;
     clear: both;
     display: flex;
     flex-direction: column;
