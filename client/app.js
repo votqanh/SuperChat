@@ -340,8 +340,18 @@ class ChatView {
                 });
             }
         });
-    }
 
+        // Render summary when server sends it back
+        this.socket.addEventListener('message', (event) => {
+            const socketResponse = JSON.parse(event.data);
+        
+            const summary = socketResponse.message;
+        
+            // console.log('Summary:', summary);
+            
+            this.createMessageBox(summary);
+        });
+    }
     
     // To display the selected PDF file in the dropzone
     displayImageInDropzone(dropzone, file, index) {
@@ -403,9 +413,8 @@ class ChatView {
     // Send the file to server and render summary
     sendSelectedFile(file){
         if (this.room && this.file) {
-            // this.file = file;
-
             const reader = new FileReader();
+
             reader.onload = () => {
                 const fileData = reader.result.split(',')[1];
     
@@ -419,18 +428,8 @@ class ChatView {
                         data: fileData
                     }
                 }));
-
-                // Render summary when server sends it back
-                this.socket.onmessage = (event) => {
-                    const socketResponse = JSON.parse(event.data);
-                
-                    const summary = socketResponse.message;
-                
-                    // console.log('Summary:', summary);
-                    
-                    this.createMessageBox(summary);
-                };
             };
+
             reader.onerror = (error) => {
                 console.error('Error reading the file:', error);
             };

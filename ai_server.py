@@ -14,7 +14,17 @@ app = Flask(__name__)
 def process_pdf():
     file = request.form['file']
 
-    text = process_pdf(file)
+    # Assuming 'file' contains the Base64-encoded PDF file data received over WebSocket
+    base64_data = file.encode('utf-8')  # Convert string to bytes
+    pdf_data = base64.b64decode(base64_data)
+
+    # Create a BytesIO object to work with pdfminer
+    pdf_stream = BytesIO(pdf_data)
+
+    # Extract text content from PDF
+    text = extract_text(pdf_stream)
+
+    # print("Text content of the PDF:", text)
 
     response = {'data': get_summary(text)}
     
@@ -65,23 +75,6 @@ def process_video():
     response = {'data': data}
 
     return jsonify(response)
-
-
-def process_pdf(file):
-    # Assuming 'file' contains the Base64-encoded PDF file data received over WebSocket
-    base64_data = file.encode('utf-8')  # Convert string to bytes
-    pdf_data = base64.b64decode(base64_data)
-
-    # Create a BytesIO object to work with pdfminer
-    pdf_stream = BytesIO(pdf_data)
-
-    # Extract text content from PDF
-    text = extract_text(pdf_stream)
-
-    # print("Text content of the PDF:", text)
-
-    return text
-
 
 def get_summary(text):
     # Get summary
