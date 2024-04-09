@@ -1,3 +1,6 @@
+proposal.md : Approved Proposal of our team.  
+docs.md : Document for detailed description of the design and implementation.
+
 ### Steps to run our AI feature
 
 1. Install NodeJS dependencies using `npm install`
@@ -8,7 +11,7 @@
 6. Open `localhost:3000` and login with username `alice`, password `secret`
 7. Select any chatroom
 8. Try sending a youtube link, you should get a summary below the message bubble
-9. Try uploading a pdf/txt file, you should also get a summary
+9. Try uploading a pdf, docx, or txt file, you should also get a summary
 
 
 ### Dependencies  
