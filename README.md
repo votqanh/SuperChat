@@ -1,4 +1,4 @@
-proposal.md : Approved Proposal of our team.
+proposal.md : Approved Proposal of our team.  
 docs.md : Document for detailed description of the design and implementation.
 
 ### Steps to run our AI feature
