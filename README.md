@@ -1,4 +1,4 @@
-Steps to run our AI feature:
+### Steps to run our AI feature
 
 1. Install NodeJS dependencies using `npm install`
 2. Create a virtual environment with Python interpreter v3.12.2
@@ -11,12 +11,14 @@ Steps to run our AI feature:
 9. Try uploading a pdf/txt file, you should also get a summary
 
 
-Dependencies:  
+### Dependencies  
 express (v4.18.2)  
 mongo (v0.1.0)  
 mongod (v2.0.0)  
+mongodb (v6.5.0)  
 ws (v8.16.0)  
-nodemon (v3.0.3)    
+nodemon (v3.0.3)  
+axios (v1.6.8)
 
 flask (v3.0.2)  
 pdfminer.six (v20231228)  
