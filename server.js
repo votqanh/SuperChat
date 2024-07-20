@@ -6,8 +6,8 @@ const SessionManager = require('./SessionManager');
 const crypto = require('crypto');
 const axios = require('axios');
 
-// let mongoUrl = 'mongodb://localhost:27017'; 
-let mongoUrl = 'mongodb://127.0.0.1:27017';
+let mongoUrl = 'mongodb://localhost:27017'; 
+// let mongoUrl = 'mongodb://127.0.0.1:27017';
 let dbName = 'cpen322-messenger';
 let db = new Database(mongoUrl, dbName);
 const sessionManager = new SessionManager();
@@ -178,13 +178,28 @@ app.use(function (err, req, res, next) {
     }
 })
 
-broker.on('connection', function connection(ws, incomingMessage) {
+broker.on('connection', function connection(ws, incomingMessage) {    
+    console.log("Connection established");
 	if (incomingMessage.headers.cookie == undefined) {
 		ws.close();
 		return;
 	}
     
-    var cookie = incomingMessage.headers.cookie.split('=')[1];
+    var cookieString = incomingMessage.headers.cookie;
+
+    // Function to extract token (assuming a simple key-value structure)
+    function extractToken(cookieString) {
+        const cookieParts = cookieString.split(';');
+        for (const part of cookieParts) {
+        const [key, value] = part.trim().split('=');
+        if (key === 'cpen322-session') {
+            return value;
+        }
+        }
+        return null;
+    }
+    
+    const cookie = extractToken(cookieString);
     
 	if(sessionManager.getUsername(cookie) == null) {
 		ws.close();
@@ -194,6 +209,7 @@ broker.on('connection', function connection(ws, incomingMessage) {
 	ws.on('message', async (data) => {
         var hasSummary = false;
 		var msg = JSON.parse(data);
+        
         // To check the sent pdf file. (It can receive .pdf, .docx, .txt)
         // console.log('File received:', msg);
 

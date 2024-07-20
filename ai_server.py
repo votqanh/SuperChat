@@ -81,6 +81,8 @@ def get_summary(text):
     API_KEY = 'urUHBanFf5qq0F39mHGIPdWV9tvDqe3198WQ0Zq3'
     co = cohere.Client(API_KEY)
 
+    print(text)
+
     # summarize transcript using Cohere
     try:
         response = co.summarize(
@@ -88,7 +90,7 @@ def get_summary(text):
             format='bullets',
             length='medium'
         )
-    except cohere.CohereError as e:
+    except Exception as e:
         print(e)
         return "Unable to get summary. Try sending another file."
     

@@ -51,8 +51,6 @@ function SessionManager () {
 		// Try to read the cookie information from the request
         const cookieHeader = request.headers.cookie;
 		
-
-
         if (!cookieHeader) {
             // If the cookie header was not found, short-circuit the middleware
             next(new SessionError('Cookie not found'));
@@ -79,8 +77,6 @@ function SessionManager () {
         next();
 	};
 
-	// this function is used by the test script.
-	// you can use it if you want.
 	this.getUsername = (token) => ((token in sessions) ? sessions[token].username : null);
 
 	// Helper function to calculate the strength of a token

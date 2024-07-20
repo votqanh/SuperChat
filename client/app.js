@@ -382,9 +382,9 @@ class ChatView {
 
             } else {
                 // Handle the other types of file by displaying their names
-            const fileNameElement = document.createElement('div');
-            fileNameElement.textContent = file.name;
-            fileContainer.appendChild(fileNameElement);
+                const fileNameElement = document.createElement('div');
+                fileNameElement.textContent = file.name;
+                fileContainer.appendChild(fileNameElement);
             }
 
             // Add a function to change the file to another file (By clicking remove)
@@ -480,7 +480,6 @@ class ChatView {
     
     }
 
-    
     sendMessage() {
         // check if this.room is set before calling addMessage
         if (this.room) {
@@ -686,7 +685,6 @@ function main() {
     renderRoute();
 
     function refreshLobby() {
-
         Service.getAllRooms()
             .then(function(roomsFromServer) {
                 roomsFromServer.forEach(function(room) {
