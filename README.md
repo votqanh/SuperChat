@@ -1,8 +1,8 @@
-# File and Video Summary AI
-This AI summarizes text files and YouTube videos right in chat. Upload your file or provide a YouTube link, and the AI will quickly generate a concise summary.
-
-After logging into the website, entering a chat room, and scrolling to the bottom, there is a dropbox to upload a file. The user can choose a file to upload by clicking on or dragging a file into the box. The user can check if the chosen file, which is a pdf, docx, or txt file, is successfully uploaded by the preview of the file. The users can change a file by clicking on the ‘remove’ text inside the box. After clicking the ‘summarize’ button, the user can see the summary of the file in the chat. The user can also send a YouTube video link, and a summary will automatically be created below the link.
-
+# SuperChat
+SuperChat is a web-based chat application that can summarize any text file or YouTube video. Upload your file or paste in a YouTube video link, and SuperChat will quickly generate a concise summary.
+<p>
+  Log into the website, then enter a chat room. At the bottom is a dynamic file upload dropbox. Upload a file, and check if the selected file (pdf, docx, txt supported) is successfully uploaded by the preview feature. You can change your selection by clicking on 'Remove' inside the box. Click on 'Summarize' and you will see the summary of the file right in the chat. You can also send a YouTube link, and a summary will be automatically created below your message.
+</p>
 <p align="center">
   <img width="700" alt="demogif" src="https://github.com/user-attachments/assets/dd3b5fb7-eda3-42fe-9c24-2875f0575db9">
 </p>
