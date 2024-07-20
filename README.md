@@ -3,21 +3,25 @@ This AI summarizes text files and YouTube videos right in chat. Upload your file
 
 After logging into the website, entering a chat room, and scrolling to the bottom, there is a dropbox to upload a file. The user can choose a file to upload by clicking on or dragging a file into the box. The user can check if the chosen file, which is a pdf, docx, or txt file, is successfully uploaded by the preview of the file. The users can change a file by clicking on the ‘remove’ text inside the box. After clicking the ‘summarize’ button, the user can see the summary of the file in the chat. The user can also send a YouTube video link, and a summary will automatically be created below the link.
 
+<p align="center">
+  <img width="700" alt="demogif" src="https://github.com/user-attachments/assets/dd3b5fb7-eda3-42fe-9c24-2875f0575db9">
+</p>
+
 ### YouTube video summary
-<img width="500" alt="Screenshot 2024-04-08 at 1 38 44 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/910e8369-08c1-4e1f-b54a-dbe3c93ebaf7">
-<img width="500" alt="Screenshot 2024-04-08 at 1 57 09 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/dda6299f-6831-45ff-8a54-1bc6f6c39b93">
-<img width="500" alt="Screenshot 2024-04-08 at 1 50 13 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/98129141-1275-496f-a004-0edd9983669c">
-<img width="500" alt="Screenshot 2024-04-08 at 1 56 28 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/18297423-0fbc-4b79-9f69-afb7dc8c517b">
-<br>Error handling for videos with no transcript.
+<img width="500" alt="demopic1" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/910e8369-08c1-4e1f-b54a-dbe3c93ebaf7"> <br>
+<img width="500" alt="demopic2" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/dda6299f-6831-45ff-8a54-1bc6f6c39b93"> <br>
+<img width="500" alt="demopic3" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/98129141-1275-496f-a004-0edd9983669c"> <br>
+<img width="500" alt="demopic4" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/18297423-0fbc-4b79-9f69-afb7dc8c517b"> <br>
+Error handling for videos with no transcript.
 
 ### PDF summary
-<img width="500" alt="Screenshot 2024-04-08 at 1 08 10 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/db5bbec3-b7ce-4e9b-bcd7-a707154f60d4">
+<img width="500" alt="demopic5" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/db5bbec3-b7ce-4e9b-bcd7-a707154f60d4">
 
 ### DOCX summary
-<img width="500" alt="Screenshot 2024-04-08 at 1 08 41 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/73dfcf9a-012e-4fa7-83d5-14aa2e0840b4">
+<img width="500" alt="demopic6" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/73dfcf9a-012e-4fa7-83d5-14aa2e0840b4">
 
 ### TXT summary
-<img width="500" alt="Screenshot 2024-04-08 at 1 09 13 PM" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/a3b5a66c-d21a-4f7b-b379-b85749523c16">
+<img width="500" alt="demopic7" src="https://github.com/UBC-CPEN-322/project-imminent-squirrel/assets/84301202/a3b5a66c-d21a-4f7b-b379-b85749523c16">
 
 ## Design and Implementation
 
