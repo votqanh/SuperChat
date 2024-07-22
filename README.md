@@ -4,7 +4,7 @@ SuperChat is a web-based chat application that can summarize any text file or Yo
   Log into the website, then enter a chat room. At the bottom is a dynamic file upload dropbox. Upload a file, and check if the selected file (pdf, docx, txt supported) is successfully uploaded by the preview feature. You can change your selection by clicking on 'Remove' inside the box. Click on 'Summarize' and you will see the summary of the file right in the chat. You can also send a YouTube link, and a summary will be automatically created below your message.
 </p>
 <p align="center">
-  <img width="700" alt="demogif" src="https://github.com/user-attachments/assets/14da0742-bc1e-45da-b270-eb8f4d291dbd">
+  <img width="700" alt="demogif" src="https://github.com/user-attachments/assets/d58b3895-16e4-492f-a037-833688c6060b">
 </p>
 
 ### YouTube video summary
